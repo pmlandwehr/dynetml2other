@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 import codecs
 import dynetmlparsingutils as dmlpu
 from lxml import etree
-from MetaNetwork import MetaNetwork
 import os
 
 
@@ -18,14 +17,14 @@ class DynamicMetaNetwork:
     self.metanetworks is the list of the Meta-Networks associated with the Dynamic Meta-Network.
     """
 
-    def __init__(self, network_format=str()):
+    def __init__(self, network_format):
 
-        if not isinstance(network_format,(str, unicode)):
+        if not isinstance(network_format, (str, unicode)):
             raise TypeError('network_format must be a str or unicode')
 
         self.__network_format = network_format.lower()
 
-        if self.__network_format not in ['igraph','networkx']:
+        if self.__network_format not in ['igraph', 'networkx']:
             raise ValueError('network_format must be "igraph" or "networkx"; got {0}'.format(network_format))
 
         self.attributes = {}
@@ -79,8 +78,13 @@ class DynamicMetaNetwork:
         for attrib_key in dmn_tag.attrib:
             self.attributes[attrib_key] = dmlpu.format_prop(dmn_tag.attrib[attrib_key])
 
+        if self.__network_format == 'igraph':
+            from MetaNetworkIGraph import MetaNetworkIG as MetaNetwork
+        else:
+            from MetaNetworkNetworkX import MetaNetworkNX as MetaNetwork
+
         for mn_tag in dmn_tag.iterfind('MetaNetwork'):
-            self.metanetworks.append(MetaNetwork(self.__network_format))
+            self.metanetworks.append(MetaNetwork())
             self.metanetworks[-1].load_from_tag(mn_tag, properties_to_ignore, properties_to_include,
                                                 nodeclasses_to_include, nodeclasses_to_ignore,
                                                 networks_to_include, networks_to_ignore)

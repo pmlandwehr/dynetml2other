@@ -6,7 +6,7 @@ from MetaNetwork import MetaNetwork
 from networkx import nx
 
 
-class MetaNetworkIGraph (MetaNetwork):
+class MetaNetworkNX (MetaNetwork):
 
     def parse_and_add_graph_tag(self, nk_tag):
         if nk_tag.attrib['isDirected'] == 'true':

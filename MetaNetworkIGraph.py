@@ -7,7 +7,7 @@ import igraph
 from MetaNetwork import MetaNetwork
 
 
-class MetaNetworkIGraph (MetaNetwork):
+class MetaNetworkIG (MetaNetwork):
 
     def parse_and_add_graph_tag(self, nk_tag):
         g = igraph.Graph(directed=nk_tag.attrib['isDirected'] == 'true')

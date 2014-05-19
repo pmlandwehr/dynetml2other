@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from collections import defaultdict
 from datetime import datetime
-import networkx as nx
+
 
 def node_tuple():
     """The tuple that defines a node"""
@@ -171,8 +171,9 @@ def get_nodeset_tuple(nodeclass_tag, property_inclusion_test=lambda x: True):
 
     return p_i_dict, node_tuples
 
+
 def get_nodeclass_dict(nodes_tag, prop_inclusion_test=lambda x: True, nodeclass_inclusion_test=lambda x: True):
-    new_nodeclass_dict = nodeclass_dict()
+    new_nodeclass_dict = defaultdict(dict)
     for nc_tag in nodes_tag.iterfind('nodeclass'):
         if not nodeclass_inclusion_test(nc_tag.attrib['id']):
             continue

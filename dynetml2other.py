@@ -1,18 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Helper class for converting DyNetML files into NetworkX graphs.
-Meta-Networks will be stored as instances of the MetaNetwork class, which contains a list of nx.Graphs and nx.DiGraphs.
+Helper class for converting DyNetML files into NetworkX or igraph graphs.
+Meta-Networks will be stored as instances of the MetaNetwork class, which contains graphs from the chosen library.
 Dynamic Meta-Networks are stored as instances of the DynamicMetaNetwork class, which contains a list of MetaNetworks.
 """
 
 from DynamicMetaNetwork import DynamicMetaNetwork
-from MetaNetwork import MetaNetwork
 from lxml import etree
 import os
 import sys
 
-# TODO merge into coommon repo with dynetml2igraph and a dict-based graph under a common superclass
+# TODO create dict-based child class
 # TODO create unit test for converting to dynetml
 # TODO add function for unioning DynamicMetaNetworks
 # TODO add function for unioning MetaNetworks
@@ -21,7 +20,7 @@ import sys
 # TODO make it possible to reasonably build a MetaNetwork from scratch
 
 
-def dynetml2other(dynetml_path, network_format=str()):
+def dynetml2other(dynetml_path, network_format):
     """
     This method reads in a DyNetML file and returns the contained DynamicMetaNetwork or MetaNetwork objects.
     :return an instance of DynamicMetaNetwork, an instance of MetaNetwork, or None
@@ -51,10 +50,15 @@ def dynetml2other(dynetml_path, network_format=str()):
     outnetwork = None
     if root.getroot().tag == 'DynamicMetaNetwork':
         outnetwork = DynamicMetaNetwork(network_format)
-        outnetwork.load_from_dynetml(root.getroot())
+        outnetwork.load_from_tag(root.getroot())
     elif root.getroot().tag == 'MetaNetwork':
-        outnetwork = MetaNetwork(network_format)
-        outnetwork.load_from_dynetml(root.getroot())
+        if network_format == 'igraph':
+            from MetaNetworkIGraph import MetaNetworkIG as MetaNetwork
+        else:
+            from MetaNetworkNetworkX import MetaNetworkNX as MetaNetwork
+
+        outnetwork = MetaNetwork()
+        outnetwork.load_from_tag(root.getroot())
 
     return outnetwork
 
