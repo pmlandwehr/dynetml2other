@@ -5,11 +5,11 @@ Helper class for converting DyNetML files into NetworkX or igraph graphs.
 Meta-Networks will be stored as instances of the MetaNetwork class, which contains graphs from the chosen library.
 Dynamic Meta-Networks are stored as instances of the DynamicMetaNetwork class, which contains a list of MetaNetworks.
 """
+__author__ = 'plandweh'
 
 from DynamicMetaNetwork import DynamicMetaNetwork
 from lxml import etree
 import os
-import sys
 
 # TODO create dict-based child class
 # TODO create unit test for converting to dynetml
@@ -61,15 +61,3 @@ def dynetml2other(dynetml_path, network_format):
         outnetwork.load_from_tag(root.getroot())
 
     return outnetwork
-
-
-def main(args):
-    for arg in args:
-        if not os.path.exists(arg):
-            continue
-
-        dynetml2other(arg)
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])

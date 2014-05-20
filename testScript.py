@@ -1,4 +1,12 @@
-from dynetml2other import *
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+__author__ = 'plandweh'
+
+from dynetml2other import dynetml2other
+from DynamicMetaNetwork import DynamicMetaNetwork
+from MetaNetworkIGraph import MetaNetworkIG
+from MetaNetworkNetworkX import MetaNetworkNX
 import os
 import unittest
 
@@ -34,7 +42,7 @@ class UnitTests(unittest.TestCase):
             self.assertEqual(len(node_tree[e_n[0]]), 1)
             self.assertTrue(e_n[1] in node_tree[e_n[0]])
             self.assertEqual(len(node_tree[e_n[0]][e_n[1]][1]), e_n[2],
-                             'len(mn.node_tree[{0}][{1}][1]) = {2}, not {3}'.format(
+                             'len(mn._node_tree[{0}][{1}][1]) = {2}, not {3}'.format(
                                  e_n[0], e_n[1], len(node_tree[e_n[0]][e_n[1]][1]), e_n[2]))
 
     def eval_networks(self, networks, expected_networks, network_format):
@@ -54,28 +62,25 @@ class UnitTests(unittest.TestCase):
 
     def eval_format(self, network_format):
         self.assertTrue(network_format in ('networkx', 'igraph'))
-        if network_format == 'networkx':
-            from MetaNetworkNetworkX import MetaNetworkNX as MetaNetwork
-        else:
-            from MetaNetworkIGraph import MetaNetworkIG as MetaNetwork
+        #if network_format == 'networkx':
+        #    import MetaNetworkNetworkX as MetaNetwork
+        #else:
+        #    import MetaNetworkIGraph as MetaNetwork
 
         dmn = dynetml2other(working_path('test_dynetml', 'files_2014022423.xml'), network_format)
         self.assertTrue(isinstance(dmn, DynamicMetaNetwork))
         self.assertEqual(len(dmn.metanetworks), 23)
 
         for mn in dmn.metanetworks[:5]:
-            self.assertTrue(isinstance(mn, MetaNetwork))
-            self.eval_node_tree(mn.node_tree, [('Agent', 'Agent', 1), ('Event', 'Tweet', 1)])
+            self.assertTrue(isinstance(mn, (MetaNetworkIG, MetaNetworkNX)))
+
+            self.eval_node_tree(mn.get_node_tree(), [('Agent', 'Agent', 1), ('Event', 'Tweet', 1)])
             self.eval_networks(mn.networks, [('Agent x Tweet - Sender', 1, 2)], network_format)
 
         mn = dmn.metanetworks[-1]
-        self.assertTrue(isinstance(mn, MetaNetwork))
-
         self.assertEqual(mn.attributes['id'], '2014-02-24 11 PM')
-        self.eval_node_tree(mn.node_tree, [('Agent', 'Agent', 923),
-                                           ('Knowledge', 'Concept', 103),
-                                           ('Location', 'Location', 201),
-                                           ('Event', 'Tweet', 870)])
+        self.eval_node_tree(mn.get_node_tree(), [('Agent', 'Agent', 923), ('Knowledge', 'Concept', 103),
+                                            ('Location', 'Location', 201), ('Event', 'Tweet', 870)])
         self.eval_networks(mn.networks, [('Agent x Tweet - Sender', 870, 1566),
                                          ('Tweet x Agent - Mentions', 590, 806),
                                          ('Tweet x Concept', 211, 245),
@@ -95,7 +100,6 @@ class UnitTests(unittest.TestCase):
 
         with self.assertRaises(IOError):
             mn.write_dynetml(self.test_dir_name)
-
 
     def test_dynamicmetanetwork(self):
         with self.assertRaises(TypeError):
@@ -130,7 +134,6 @@ class UnitTests(unittest.TestCase):
 
         for network_format in ('networkx', 'igraph'):
             self.eval_format(network_format)
-
 
     def tearDown(self):
         os.rmdir(self.test_dir_name)

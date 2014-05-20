@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 __author__ = 'plandweh'
 
 from bs4 import BeautifulSoup
@@ -16,7 +19,6 @@ class DynamicMetaNetwork:
     self.attributes is a dictionary of attributes associated with the dynamic network
     self.metanetworks is the list of the Meta-Networks associated with the Dynamic Meta-Network.
     """
-
     def __init__(self, network_format):
 
         if not isinstance(network_format, (str, unicode)):

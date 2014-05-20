@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 __author__ = 'plandweh'
 
 from bs4 import BeautifulSoup
@@ -9,7 +12,15 @@ from MetaNetwork import MetaNetwork
 
 class MetaNetworkIG (MetaNetwork):
 
-    def parse_and_add_graph_tag(self, nk_tag):
+    def _rename_network_nodes(self, nodeclass_name, nodeset_name, node_name, new_node_name):
+        for nk in self.networks:
+            if nk[1]['sourceType'] == nodeclass_name and nk[1]['source'] == nodeset_name or \
+             nk[1]['targetType'] == nodeclass_name and nk[1]['target'] == nodeset_name:
+                if node_name in nk[0]:
+                    nk[0][new_node_name] = nk[0][node_name]
+                    del nk[0][node_name]
+
+    def _parse_and_add_graph_tag(self, nk_tag):
         g = igraph.Graph(directed=nk_tag.attrib['isDirected'] == 'true')
         g['sourceType'] = nk_tag.attrib['sourceType']
         g['source'] = nk_tag.attrib['source']
@@ -45,7 +56,7 @@ class MetaNetworkIG (MetaNetwork):
 
         self.networks[nk_tag.attrib['id']] = id_vertex_dict, g
 
-    def get_networks_tag(self):
+    def _get_networks_tag(self):
         bs = BeautifulSoup()
         networks_tag = bs.new_tag('networks')
         for key in self.networks:
@@ -72,7 +83,7 @@ class MetaNetworkIG (MetaNetwork):
 
         return networks_tag
 
-    def pretty_print_networks(self):
+    def _pretty_print_networks(self):
         print ' == Networks =='
         network_count = 0
         for nk_key in self.networks:

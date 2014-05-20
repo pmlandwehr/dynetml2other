@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 __author__ = 'plandweh'
 
 from bs4 import BeautifulSoup
@@ -8,7 +11,14 @@ from networkx import nx
 
 class MetaNetworkNX (MetaNetwork):
 
-    def parse_and_add_graph_tag(self, nk_tag):
+    def _rename_network_nodes(self, nodeclass_name, nodeset_name, node_name, new_node_name):
+        new_mapping = {node_name: new_node_name}
+        for nk in self.networks:
+            if nk.graph['sourceType'] == nodeclass_name and nk.graph['source'] == nodeset_name or \
+             nk.graph['targetType'] == nodeclass_name and nk.graph['target'] == nodeset_name:
+                nx.relabel_nodes(nk, new_mapping)
+
+    def _parse_and_add_graph_tag(self, nk_tag):
         if nk_tag.attrib['isDirected'] == 'true':
             g = nx.DiGraph()
         else:
@@ -38,7 +48,7 @@ class MetaNetworkNX (MetaNetwork):
 
         self.networks[nk_tag.attrib['id']] = g
 
-    def get_networks_tag(self):
+    def _get_networks_tag(self):
         bs = BeautifulSoup()
         networks_tag = bs.new_tag('networks')
         for key in self.networks:
@@ -63,7 +73,7 @@ class MetaNetworkNX (MetaNetwork):
 
         return networks_tag
 
-    def pretty_print_networks(self):
+    def _pretty_print_networks(self):
         print ' == Networks =='
         network_count = 0
         for nk_key in self.networks:
