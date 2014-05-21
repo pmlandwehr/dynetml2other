@@ -27,6 +27,7 @@ class MetaNetwork:
     preserved if you start manipulating the networks.
     """
     def __init__(self):
+        """Initializes a MetaNetwork"""
         self.attributes = {}
         self.properties = {}
         self.propertyIdentities = {}
@@ -37,14 +38,22 @@ class MetaNetwork:
                           nodeclasses_to_include=list(), nodeclasses_to_ignore=list(),
                           networks_to_include=list(), networks_to_ignore=list()):
         """
-        Reads XML defining a meta network and imports its contents
-        :param mn_text: XML containing a meta network
+        Parses XML containing a Meta-Network and loads the contents
+        :param mn_text: XML containing a Meta-Network
         :param properties_to_include: a list of nodeclass properties that should be included
         :param properties_to_ignore: a list of nodeclass properties that should be ignored
         :param nodeclasses_to_include: a list of nodeclasses that should be included
         :param nodeclasses_to_ignore: a list of nodeclasses that should be ignored
         :param networks_to_include: a list of networks that should be included
         :param networks_to_ignore: a list of networks that should be ignored
+        :param mn_text: str or unicode
+        :param properties_to_include: list of strs or unicodes
+        :param properties_to_ignore: list of strs or unicodes
+        :param nodeclasses_to_include: list of strs or unicodes
+        :param nodeclasses_to_ignore: list of strs or unicodes
+        :param networks_to_include: list of strs or unicodes
+        :param networks_to_ignore: list of strs or unicodes
+        :raise TypeError: if mn_text isn't a str or unicode
         """
         if not isinstance(mn_text, (unicode, str)):
             raise TypeError('load_from_dynetml needs text containing XML; got {0}'.format(type(mn_text)))
@@ -65,14 +74,22 @@ class MetaNetwork:
                       nodeclasses_to_include=list(), nodeclasses_to_ignore=list(),
                       networks_to_include=list(), networks_to_ignore=list()):
         """
-        Reads an lxml _Elememt defining a meta network and imports its contents
-        :param mn_tag: An lxml _Element containing a meta network
+        Parses the content of an lxml _Element containing a Meta-Network and loads the contents
+        :param mn_tag: An lxml _Element containing a Dynamic Meta-Network
         :param properties_to_include: a list of nodeclass properties that should be included
         :param properties_to_ignore: a list of nodeclass properties that should be ignored
         :param nodeclasses_to_include: a list of nodeclasses that should be included
         :param nodeclasses_to_ignore: a list of nodeclasses that should be ignored
         :param networks_to_include: a list of networks that should be included
         :param networks_to_ignore: a list of networks that should be ignored
+        :type mn_tag: An lxml _Element containing a DynamicMetaNetwork
+        :type properties_to_include: list of strs or unicode
+        :type properties_to_ignore: list of strs or unicode
+        :type nodeclasses_to_include: list of strs or unicode
+        :type nodeclasses_to_ignore: list of strs or unicode
+        :type networks_to_include: list of strs or unicode
+        :type networks_to_ignore: list of strs or unicode
+        :raise TypeError: if dnn isn't a BeautifulSoup Tag
         """
         prop_inclusion_test = dmlpu.validate_and_get_inclusion_test(
             (properties_to_include, 'properties_to_include'),
@@ -102,9 +119,25 @@ class MetaNetwork:
             self._parse_and_add_graph_tag(nk_tag)
 
     def get_node_tree(self):
+        """
+        Return self._node_tree
+        :return: self._node_tree
+        :rtype: defaultdict(dmlpu.nodeclass_dict)
+        """
         return self._node_tree
 
     def validate_tree_branch(self, nodeclass_name, nodeset_name=None, node_name=None):
+        """
+        Verify that a particular nodeclass, nodeset, or node exists in the node tree
+        :param nodeclass_name: The name of a nodeclass
+        :param nodeset_name: The name of a nodeset
+        :param node_name: The name of a node
+        :type nodeclass_name: unicode or str
+        :type nodeset_name: unicode, str, or None
+        :type node_name: unicode, str, or None
+        :raise TypeError: if nodeclass_name, nodeset_name, or node_name is not a str, unicode or None
+        :raise KeyError: if nodeclass_name, nodeset_name, or node_name cannot be found in self._node_tree
+        """
         for pair in (nodeclass_name, 'nodeclass_name'), (nodeset_name, 'nodeset_name'), (node_name, 'node_name'):
             if not isinstance(pair[0], (str, unicode, None)):
                 raise TypeError('{0} must be str or unicode'.format(pair[1]))
@@ -119,19 +152,62 @@ class MetaNetwork:
             raise KeyError('No node named {0} in nodeset {1}'.format(node_name, nodeset_name))
 
     def get_nodeclass(self, nodeclass_name):
+        """
+        Return a given nodeclass
+        :param nodeclass_name: name of the nodeclass to be returned
+        :type nodeclass_name: str or unicode
+        :return: self._node_tree[nodeclass_name]
+        :rtype: dmlpu.nodeclass_dict
+        """
         self.validate_tree_branch(nodeclass_name)
         return self._node_tree[nodeclass_name]
 
     def get_nodeset(self, nodeclass_name, nodeset_name):
+        """
+        Return a given nodeset
+        :param nodeclass_name: name of the parent of nodeset_name
+        :param nodeset_name: name of the nodeset to be returned
+        :type nodeclass_name: str or unicode
+        :type nodeset_name: str or unicode
+        :return: self._node_tree[nodeclass_name][nodeset_name]
+        :rtype: dmlpu.nodeset_tuple
+        """
         self.validate_tree_branch(nodeclass_name, nodeset_name)
         return self._node_tree[nodeclass_name][nodeset_name]
 
     def get_node(self, nodeclass_name, nodeset_name, node_name):
+        """
+        Return a given node
+        :param nodeclass_name: name of the parent of nodeset_name
+        :param nodeset_name: name of the parent of node_name
+        :param node_name: name of the node to be returned
+        :type nodeclass_name: str or unicode
+        :type nodeset_name: str or unicode
+        :type node_name: str or unicode
+        :return: self._node_tree[nodeclass_name][nodeset_name][node]
+        :rtype: dmlpu.node_tuple
+        """
         self.validate_tree_branch(nodeclass_name, nodeset_name, node_name)
         return self._node_tree[nodeclass_name][nodeset_name][node_name]
 
     def set_node_property(self, nodeclass_name, nodeset_name, node_name, property_name, value):
+        """
+        Set the value of a node property
+        :param nodeclass_name: the name of the parent of nodeset_name
+        :param nodeset_name: the name of the parent of node_name
+        :param node_name: the name of the node whose property is being set
+        :param property_name: the name of the property to be set
+        :param value: the value of the parameter
+        :type nodeclass_name: str or unicode
+        :type nodeset_name: str or unicode
+        :type node_name: str or unicode
+        :type property_name: str or unicode
+        :type value: str, unicode, or the appropriate type specified in dmlpu.format_prop
+        :raise TypeError: if property_name isn't a str or unicode
+        """
         self.validate_tree_branch(nodeclass_name, nodeset_name, node_name)
+        if not isinstance(property_name, (str, unicode)):
+            raise TypeError('property_name must be a str or unicode')
         if property_name not in self._node_tree[nodeclass_name][nodeset_name][0]:
             raise KeyError('{0} is not a property for nodeset {1}'.format(property_name, nodeset_name))
 
@@ -139,6 +215,23 @@ class MetaNetwork:
             dmlpu.format_prop(value, self._node_tree[nodeclass_name][nodeset_name][0][property_name][0])
 
     def create_nodeset_property(self, nodeclass_name, nodeset_name, property_name, type_str, singlevalued_bool):
+        """
+        Create a new nodeset property
+        :param nodeclass_name: the name of the parent of nodeset_name
+        :param nodeset_name: the name of the nodeset that should get the new property
+        :param property_name: the name of the property to be added
+        :param type_str: the type of the parameter
+        :param singlevalued_bool: whether or not the parameter should be single-valued
+        :type nodeclass_name: str or unicode
+        :type nodeset_name: str or unicode
+        :type property_name: str or unicode
+        :type type_str: str or unicode
+        :type singlevalued_bool: bool
+        :raise KeyError: If a property named property_name already exists.
+        :raise TypeError: If type_str isn't a str or unicode
+        :raise ValueError: If type_str isn't "number", "date", "text", "categoryText", or "URI"
+        :raise TypeError: If singlevalued_bool isn't a bool
+        """
         self.validate_tree_branch(nodeclass_name, nodeset_name)
         if property_name in self._node_tree[nodeclass_name][nodeset_name]:
             raise KeyError('property {0} already exists for nodeset {1}'.format(property_name, nodeset_name))
@@ -148,17 +241,23 @@ class MetaNetwork:
             raise ValueError('type_str must be "number", "date" "text", "categoryText", or "URI"; got {0}'.
                              format(type_str))
         if not isinstance(singlevalued_bool, bool):
-            raise KeyError('singlevalued_bool must be a bool')
+            raise TypeError('singlevalued_bool must be a bool')
 
         self._node_tree[nodeclass_name][nodeset_name][0][property_name] = type_str, singlevalued_bool
 
     def rename_node(self, nodeclass_name, nodeset_name, node_name, new_node_name):
         """
-
-        :param nodeclass_name:
-        :param nodeset_name:
-        :param node_name:
-        :param new_node_name:
+        Rename a particular node, both in the node tree and in the networks containing it.
+        :param nodeclass_name: name of the parent of nodeset_name
+        :param nodeset_name: name of the parent of node_name
+        :param node_name: current node name
+        :param new_node_name: new name for the node
+        :type nodeclass_name: str or unicode
+        :type nodeset_name: str or unicode
+        :type node_name: str or unicode
+        :type new_node_name: str or unicode
+        :raise TypeError: if new_node_name is not a str or unicode
+        :raise KeyError: if new_node_name is already a node in the node class
         """
         self.validate_tree_branch(nodeclass_name, nodeset_name, node_name)
         if not isinstance(new_node_name, (str, unicode)):
@@ -175,6 +274,7 @@ class MetaNetwork:
         """
         Takes a path and writes out generated dynetml
         :param out_file_path: path where dynetml should be written
+        :type out_file_path: str or unicode
         :raise TypeError: if out_file_path isn't a sting
         :raise IOError: if out_file_path is a directory
         """
@@ -193,7 +293,8 @@ class MetaNetwork:
         """
         Converts the graph to dynetml and returns a BeautifulSoup tag
         :param is_entire_file: if True, wraps value as a soup. If False, returns the top tag
-        :return: a BeautifulSoup tag
+        :type is_entire_file: bool
+        :return: bs4.element.Tag
         :raise TypeError: if is_entire_file isn't a bool
         """
         if not isinstance(is_entire_file, bool):
@@ -266,14 +367,31 @@ class MetaNetwork:
         self._pretty_print_networks()
 
     def _rename_network_nodes(self, nodeclass_name, nodeset_name, node_name, new_node_name):
+        """
+        Stub class for renaming a node in the networks containing it.
+        :param nodeclass_name: name of the parent of nodeset_name
+        :param nodeset_name: name of the parent of node_name
+        :param node_name: current node name
+        :param new_node_name: new name for the node
+        :type nodeclass_name: str or unicode
+        :type nodeset_name: str or unicode
+        :type node_name: str or unicode
+        :type new_node_name: str or unicode
+        """
         pass
 
     def _get_networks_tag(self):
+        """Stub class for generating a bs4.element.Tag from the networks"""
         pass
 
     def _parse_and_add_graph_tag(self, nk_tag):
-        print 'bloop...'
+        """
+        Stub class for parsing an lxml _Element tag containing a network and adding it to the MetaNetwork.
+        :param nk_tag: The tag to be parsed.
+        :type nk_tag: lxml _Element
+        """
         pass
 
     def _pretty_print_networks(self):
+        """Stub class for pretty printing the networks"""
         pass

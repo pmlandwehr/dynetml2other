@@ -12,7 +12,7 @@ import os
 
 class DynamicMetaNetwork:
     """
-    The DynamicMetaNetwork class is a container for Dynamic Meta-Networks
+    The DynamicMetaNetwork class is a container for Dynamic Meta-Networks extracted from DyNetML.
     It bundles together a set of Meta-Networks collected at different times.
     self.__network_format is the format in which the networks should be stored. Can be 'igraph' or 'networkx'.
     It cannot be changed after initialization.
@@ -46,8 +46,8 @@ class DynamicMetaNetwork:
                           nodeclasses_to_include=list(), nodeclasses_to_ignore=list(),
                           networks_to_include=list(), networks_to_ignore=list()):
         """
-        Parses XML containing a dynamic meta network and loads the contents
-        :param dmn_text: XML containing a DynamicMetaNetwork
+        Parses XML containing a Dynamic Meta-Network and loads the contents
+        :param dmn_text: XML containing a Dynamic Meta-Network
         :param properties_to_include: a list of nodeclass properties that should be included
         :param properties_to_ignore: a list of nodeclass properties that should be ignored
         :param nodeclasses_to_include: a list of nodeclasses that should be included
@@ -61,7 +61,7 @@ class DynamicMetaNetwork:
         :param nodeclasses_to_ignore: list of strs or unicodes
         :param networks_to_include: list of strs or unicodes
         :param networks_to_ignore: list of strs or unicodes
-        :raise TypeError: if dmn_text isn't a string or unicode
+        :raise TypeError: if dmn_text isn't a str or unicode
         """
         if not isinstance(dmn_text, (unicode, str)):
             raise TypeError('load_from_dynetml needs text containing XML; got {0}'.format(type(dmn_text)))
@@ -78,8 +78,8 @@ class DynamicMetaNetwork:
                       nodeclasses_to_include=list(), nodeclasses_to_ignore=list(),
                       networks_to_include=list(), networks_to_ignore=list()):
         """
-        Parses the content of an lxml _Element containing a dynamic meta network and loads the contents
-        :param dmn_tag: An lxml _Element containing a DynamicMetaNetwork
+        Parses the content of an lxml _Element containing a Dynamic Meta-Network and loads the contents
+        :param dmn_tag: An lxml _Element containing a Dynamic Meta-Network
         :param properties_to_include: a list of nodeclass properties that should be included
         :param properties_to_ignore: a list of nodeclass properties that should be ignored
         :param nodeclasses_to_include: a list of nodeclasses that should be included
