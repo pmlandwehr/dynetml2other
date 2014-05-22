@@ -73,11 +73,11 @@ class MetaNetworkIG (MetaNetwork):
             e_l = self.networks[key].edge_list()
             if self.networks[key]['isBinary']:
                 for i in range(len(e_l)):
-                    network_tag.append(bs.new_tag('link', source=e_l[i][0], target=e_l[i][1],
-                                                  value=self.networks[key].es[i]['weight']))
+                    network_tag.append(bs.new_tag('link', source=e_l[i][0], target=e_l[i][1]))
             else:
                 for i in range(len(e_l)):
-                    network_tag.append(bs.new_tag('link', source=e_l[i][0], target=e_l[i][1]))
+                    network_tag.append(bs.new_tag('link', source=e_l[i][0], target=e_l[i][1],
+                                                  value=self.networks[key].es[i]['weight']))
 
             networks_tag.append(network_tag)
 

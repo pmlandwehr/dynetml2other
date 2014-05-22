@@ -4,47 +4,44 @@
 __author__ = 'plandweh'
 
 from bs4 import BeautifulSoup
+from collections import defaultdict
 import dynetmlparsingutils as dmlpu
 from MetaNetwork import MetaNetwork
-from networkx import nx
 
 
-class MetaNetworkNX (MetaNetwork):
+class MetaNetworkDict (MetaNetwork):
 
     def _rename_network_nodes(self, nodeclass_name, nodeset_name, node_name, new_node_name):
         new_mapping = {node_name: new_node_name}
         for nk in self.networks:
-            if nk.graph['sourceType'] == nodeclass_name and nk.graph['source'] == nodeset_name or \
-             nk.graph['targetType'] == nodeclass_name and nk.graph['target'] == nodeset_name:
+            if nk[0]['sourceType'] == nodeclass_name and nk[0]['source'] == nodeset_name or \
+             nk[0]['targetType'] == nodeclass_name and nk[0]['target'] == nodeset_name:
                 nx.relabel_nodes(nk, new_mapping)
 
     def _parse_and_add_graph_tag(self, nk_tag):
-        if nk_tag.attrib['isDirected'] == 'true':
-            g = nx.DiGraph()
-        else:
-            g = nx.Graph()
+        
+        g = {},defaultdict(dict)
 
-        g.graph['sourceType'] = nk_tag.attrib['sourceType']
-        g.graph['source'] = nk_tag.attrib['source']
-        g.graph['targetType'] = nk_tag.attrib['targetType']
-        g.graph['target'] = nk_tag.attrib['target']
-        g.graph['id'] = nk_tag.attrib['id']
-        g.graph['isDirected'] = nk_tag.attrib['isDirected'] == 'true'
-        g.graph['allowSelfLoops'] = nk_tag.attrib['allowSelfLoops'] == 'true'
-        g.graph['isBinary'] = nk_tag.attrib['isBinary'] == 'true'
+        g[0]['sourceType'] = nk_tag.attrib['sourceType']
+        g[0]['source'] = nk_tag.attrib['source']
+        g[0]['targetType'] = nk_tag.attrib['targetType']
+        g[0]['target'] = nk_tag.attrib['target']
+        g[0]['id'] = nk_tag.attrib['id']
+        g[0]['isDirected'] = nk_tag.attrib['isDirected'] == 'true'
+        g[0]['allowSelfLoops'] = nk_tag.attrib['allowSelfLoops'] == 'true'
+        g[0]['isBinary'] = nk_tag.attrib['isBinary'] == 'true'
         #for attrib_key in nk_tag.attrib:
-        #   g.graph[attrib_key] = format_prop(nk_tag.attrib[attrib_key])
+        #   g[0][attrib_key] = format_prop(nk_tag.attrib[attrib_key])
 
-        link_list = list()
-        if g.graph['isBinary']:
+        if g[0]['isDirected']:
             for link in nk_tag.iterfind('link'):
-                link_list.append((link.attrib['source'], link.attrib['target']))
-            g.add_edges_from(link_list)
+                weight = float(link.attrib['value']) if 'value' in link.attrib else 1.0
+                g[1][link.attrib['source']][link.attrib['target']] = weight
         else:
             for link in nk_tag.iterfind('link'):
                 weight = float(link.attrib['value']) if 'value' in link.attrib else 1.0
-                link_list.append((link.attrib['source'], link.attrib['target'], weight))
-            g.add_weighted_edges_from(link_list)
+                g[1][link.attrib['source']][link.attrib['target']] = weight
+                g[1][link.attrib['target']][link.attrib['source']] = weight
 
         self.networks[nk_tag.attrib['id']] = g
 
@@ -53,21 +50,22 @@ class MetaNetworkNX (MetaNetwork):
         networks_tag = bs.new_tag('networks')
         for key in self.networks:
             network_tag = bs.new_tag('network')
-            network_tag['sourceType'] = self.networks[key].graph['sourceType']
-            network_tag['source'] = self.networks[key].graph['source']
-            network_tag['targetType'] = self.networks[key].graph['targetType']
-            network_tag['target'] = self.networks[key].graph['target']
+            network_tag['sourceType'] = self.networks[key][0]['sourceType']
+            network_tag['source'] = self.networks[key][0]['source']
+            network_tag['targetType'] = self.networks[key][0]['targetType']
+            network_tag['target'] = self.networks[key][0]['target']
             network_tag['id'] = key
-            network_tag['isDirected'] = dmlpu.unformat_prop(self.networks[key].graph['isDirected'])
-            network_tag['allowSelfLoops'] = dmlpu.unformat_prop(self.networks[key].graph['allowSelfLoops'])
-            network_tag['isBinary'] = dmlpu.unformat_prop(self.networks[key].graph['isBinary'])
+            network_tag['isDirected'] = dmlpu.unformat_prop(self.networks[key][0]['isDirected'])
+            network_tag['allowSelfLoops'] = dmlpu.unformat_prop(self.networks[key][0]['allowSelfLoops'])
+            network_tag['isBinary'] = dmlpu.unformat_prop(self.networks[key][0]['isBinary'])
 
-            if self.networks[key].graph['isBinary']:
-                for edge in self.networks[key].edges_iter(data=True):
-                    network_tag.append(bs.new_tag('link', source=edge[0], target=edge[1], value=edge[2]['weight']))
-            else:
+            if self.networks[key][0]['isBinary']:
                 for edge in self.networks[key].edges_iter():
                     network_tag.append(bs.new_tag('link', source=edge[0], target=edge[1]))
+            else:
+                for edge in self.networks[key].edges_iter(data=True):
+                    network_tag.append(bs.new_tag('link', source=edge[0], target=edge[1], value=edge[2]['weight']))
+
 
             networks_tag.append(network_tag)
 
@@ -79,8 +77,8 @@ class MetaNetworkNX (MetaNetwork):
         for nk_key in self.networks:
             nk = self.networks[nk_key]
             print u'  Network {0}: {1}'.format(network_count, nk_key).encode('utf8')
-            for prop in nk.graph:
-                print u'   {0}: {1}'.format(prop, nk.graph[prop]).encode('utf8')
+            for prop in nk[0]:
+                print u'   {0}: {1}'.format(prop, nk[0][prop]).encode('utf8')
             print '   {0} nodes'.format(len(nk.nodes()))
             print '   {0} edges'.format(len(nk.edges()))
             network_count += 1
