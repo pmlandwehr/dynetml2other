@@ -4,18 +4,54 @@ from datetime import datetime
 
 
 def node_tuple():
-    """The tuple that defines a node"""
+    """
+    The tuple that defines a node
+    :rtype: tuple_(dict, dict)
+    """
     return {}, {}  # attrs, properties
 
 
 def nodeset_tuple():
-    """The tupe that defines a nodeset"""
+    """
+    The tuple that defines a nodeset
+    :rtype: tuple_(dict, defaultdict(node_tuple)
+    """
     return {}, defaultdict(node_tuple)  # property identities, list of nodes
 
 
 def nodeclass_dict():
-    """The defaultdict that defines a nodeclass"""
+    """
+    The defaultdict that defines a nodeclass
+    :rtype: defaultdict(nodeset_tuple)
+    """
     return defaultdict(nodeset_tuple)  # nodesets
+
+
+def check_key(var, var_name, map, map_name, check_if_in_map=True):
+    """
+    Helper function for validating if a key is in a map
+    :param var: the variable which needs to be checked
+    :param var_name: the name of the variable
+    :param map: the map
+    :param map_name: the name of the map
+    :param check_if_in_map: if True, verify that var is in map. If False, check if var is not in map
+    :raise KeyError: if var is not or is in map, depending on check_if_in_map
+    """
+    if check_if_in_map and var not in map:
+        raise KeyError('{0} not in {1}; looked for {2}'.format(var_name, map_name, var))
+    elif not check_if_in_map and var in map:
+        raise KeyError('{0} in {1}; looked for {2}'.format(var_name, map_name, var))
+
+def check_type(var, var_name, allowable_types):
+    """
+    Helper function for validating a variable's type
+    :param var: the variable which needs its type checked
+    :param var_name: the name of the variable
+    :param allowable_types: a type or tuple of types that var can be
+    :raise TypeError: if var is not a type included in allowable_types
+    """
+    if not isinstance(var, allowable_types):
+        raise TypeError('{0} must be of type {1}'.format(var_name, str(allowable_types)))
 
 
 def validate_and_get_inclusion_test(include_tuple, ignore_tuple):
@@ -27,9 +63,7 @@ def validate_and_get_inclusion_test(include_tuple, ignore_tuple):
     :rtype: lambda
     """
     for pair in include_tuple, ignore_tuple:
-        if type(pair[0]) != list:
-            raise TypeError('{0} must be a list'.format(pair[1]))
-
+        check_type(pair[0], pair[1], list)
         if not all(isinstance(entry, (str, unicode)) for entry in pair[0]):
             raise TypeError('{0} can only contain elements of type str or unicode'.format(pair[1]))
 

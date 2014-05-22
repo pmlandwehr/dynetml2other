@@ -11,18 +11,14 @@ from DynamicMetaNetwork import DynamicMetaNetwork
 from lxml import etree
 import os
 
-# TODO create dict-based child class
-# TODO create unit test for converting to dynetml
-# TODO add function for unioning DynamicMetaNetworks
-# TODO add function for unioning MetaNetworks
-# TODO add function for unioning networks
-# TODO make it possible to reasonably build a DynamicMetaNetwork from scratch
-# TODO make it possible to reasonably build a MetaNetwork from scratch
-
 
 def dynetml2other(dynetml_path, network_format):
     """
     This method reads in a DyNetML file and returns the contained DynamicMetaNetwork or MetaNetwork objects.
+    :param dynetml_path: Path to dynetml file
+    :param network_format: str or unicode containing the network format; we expect "networkx" or "igraph"
+    :type dynetml_path: str or unicode
+    :type network_format: str or unicode
     :return an instance of DynamicMetaNetwork, an instance of MetaNetwork, or None
     :rtype: DynamicMetaNetwork, MetaNetwork, or None
     :raise TypeError: if dynetml_path isn't a string or unicode
