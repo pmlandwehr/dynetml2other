@@ -32,8 +32,8 @@ def dynetml2other(dynetml_path, network_format):
     if not isinstance(network_format, (str, unicode)):
         raise TypeError('network_format must be str or unicode')
 
-    if network_format.lower() not in ('igraph', 'networkx'):
-        raise ValueError('network_format must be "igraph" or "networkx"; got {0}'.format(network_format))
+    if network_format.lower() not in ('dict', 'igraph', 'networkx'):
+        raise ValueError('network_format must be "dict", "igraph" or "networkx"; got {0}'.format(network_format))
 
     if not os.path.isfile(dynetml_path):
         raise IOError('{0} isn\'t a file'.format(dynetml_path))
@@ -45,10 +45,12 @@ def dynetml2other(dynetml_path, network_format):
 
     outnetwork = None
     if root.getroot().tag == 'DynamicMetaNetwork':
-        outnetwork = DynamicMetaNetwork(network_format)
+        outnetwork = DynamicMetaNetwork(network_format.lower())
         outnetwork.load_from_tag(root.getroot())
     elif root.getroot().tag == 'MetaNetwork':
-        if network_format == 'igraph':
+        if network_format.lower() == 'dict':
+            from MetaNetworkDict import MetaNetworkDict as MetaNetwork
+        elif network_format.lower() == 'igraph':
             from MetaNetworkIGraph import MetaNetworkIG as MetaNetwork
         else:
             from MetaNetworkNetworkX import MetaNetworkNX as MetaNetwork

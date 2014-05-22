@@ -25,15 +25,15 @@ class DynamicMetaNetwork:
         :param network_format: format in which graphs should be stored. "igraph" or "networkx"
         :type network_format: str or unicode
         :raise TypeError: If network format is not str or unicode
-        :raise ValueError: If network_format is not "igraph" or "networkx"
+        :raise ValueError: If network_format is not "dict", "igraph" or "networkx"
         """
         if not isinstance(network_format, (str, unicode)):
             raise TypeError('network_format must be a str or unicode')
 
         self.__network_format = network_format.lower()
 
-        if self.__network_format not in ['igraph', 'networkx']:
-            raise ValueError('network_format must be "igraph" or "networkx"; got {0}'.format(network_format))
+        if self.__network_format not in ['doct', 'igraph', 'networkx']:
+            raise ValueError('network_format must be "dict", "igraph" or "networkx"; got {0}'.format(network_format))
 
         self.attributes = {}
         self.metanetworks = []
@@ -100,7 +100,9 @@ class DynamicMetaNetwork:
         for attrib_key in dmn_tag.attrib:
             self.attributes[attrib_key] = dmlpu.format_prop(dmn_tag.attrib[attrib_key])
 
-        if self.__network_format == 'igraph':
+        if self.__network_format == 'dict':
+            from MetaNetworkDict import MetaNetworkDict as MetaNetwork
+        elif self.__network_format == 'igraph':
             from MetaNetworkIGraph import MetaNetworkIG as MetaNetwork
         else:
             from MetaNetworkNetworkX import MetaNetworkNX as MetaNetwork
