@@ -2,7 +2,8 @@
 
 **dynetml2other** provides a set of tools for loading Dynamic Network Markup Language (DyNetML) files into the
  <a href="http://igraph.org/python/">igraph</a> and <a href="http://networkx.github.io/">NetworkX</a> Python packages
- for analyzing networks. <a href="http://www.casos.cs.cmu.edu/projects/dynetml/">DyNetML</a> is an GraphML-based format
+ for analyzing networks; a vanilla network format using dictionaries is also available if richer network analysis
+ capabilities are unnecessary. <a href="http://www.casos.cs.cmu.edu/projects/dynetml/">DyNetML</a> is a GraphML-based format
  for specifying network graphs, and is intended to support 'Meta-Networks' that combine multiple types of nodes that are
  related in many one- and two-mode networks. It's the primary format used by the
  <a href="http://www.casos.cs.cmu.edu/projects/ora/">ORA network analysis tool</a>. While potent, ORA is designed to be

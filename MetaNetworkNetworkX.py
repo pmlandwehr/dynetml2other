@@ -10,6 +10,9 @@ from networkx import nx
 
 
 class MetaNetworkNX (MetaNetwork):
+    """
+    A subclass of the MetaNetwork class that handles networks by storing them as nx.Graphs and nx.DiGraphs
+    """
 
     def _rename_network_nodes(self, nodeclass_name, nodeset_name, node_name, new_node_name):
         new_mapping = {node_name: new_node_name}

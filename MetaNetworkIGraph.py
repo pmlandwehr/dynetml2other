@@ -11,6 +11,10 @@ from MetaNetwork import MetaNetwork
 
 
 class MetaNetworkIG (MetaNetwork):
+    """
+    A subclass of the MetaNetwork class that handles networks by storing them as tuples of igraph.Graphs and
+    dictionaries matching node names to igraph index numbers.
+    """
 
     def _rename_network_nodes(self, nodeclass_name, nodeset_name, node_name, new_node_name):
         for nk in self.networks:

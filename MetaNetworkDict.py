@@ -10,6 +10,10 @@ from MetaNetwork import MetaNetwork
 
 
 class MetaNetworkDict (MetaNetwork):
+    """
+    A subclass of the MetaNetwork class that handles networks by storing them as a tuple of a dictionary of
+    attributes and a defaultdict(dict) of edges.
+    """
 
     def _rename_network_nodes(self, nodeclass_name, nodeset_name, node_name, new_node_name):
         for nk in self.networks:
