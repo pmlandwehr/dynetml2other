@@ -58,10 +58,17 @@ def validate_and_get_inclusion_test(include_tuple, ignore_tuple):
     """
     A method for validating variables and then returning an inclusion test
     :param include_tuple: A two element tuple, the first element is a list of strings, the second is the list's name
-    :param ignore_tuple: A two element tuple, the first element is a list of strings, the second is the list's name
+    :param ignore_list: A two element tuple, the first element is a list of strings, the second is the list's name
+    :type include_tuple: tuple
+    :type ignore_tuple: tuple
     :returns: a test for whether or not an item should be included
     :rtype: lambda
     """
+    if include_tuple[0] is None:
+        include_tuple = [],''
+    if ignore_tuple[0] is None:
+        ignore_tuple = [],''
+
     for pair in include_tuple, ignore_tuple:
         check_type(pair[0], pair[1], list)
         if not all(isinstance(entry, (str, unicode)) for entry in pair[0]):

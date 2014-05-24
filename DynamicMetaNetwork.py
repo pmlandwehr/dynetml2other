@@ -29,9 +29,7 @@ class DynamicMetaNetwork:
         """
         if not isinstance(network_format, (str, unicode)):
             raise TypeError('network_format must be a str or unicode')
-
         self.__network_format = network_format.lower()
-
         if self.__network_format not in ['doct', 'igraph', 'networkx']:
             raise ValueError('network_format must be "dict", "igraph" or "networkx"; got {0}'.format(network_format))
 
@@ -42,9 +40,9 @@ class DynamicMetaNetwork:
         """Returns the network format"""
         return self.__network_format
 
-    def load_from_dynetml(self, dmn_text, properties_to_include=list(), properties_to_ignore=list(),
-                          nodeclasses_to_include=list(), nodeclasses_to_ignore=list(),
-                          networks_to_include=list(), networks_to_ignore=list()):
+    def load_from_dynetml(self, dmn_text, properties_to_include=None, properties_to_ignore=None,
+                          nodeclasses_to_include=None, nodeclasses_to_ignore=None, networks_to_include=None,
+                          networks_to_ignore=None):
         """
         Parses XML containing a Dynamic Meta-Network and loads the contents
         :param dmn_text: XML containing a Dynamic Meta-Network
@@ -55,12 +53,12 @@ class DynamicMetaNetwork:
         :param networks_to_include: a list of networks that should be included
         :param networks_to_ignore: a list of networks that should be ignored
         :param dmn_text: str or unicode
-        :param properties_to_include: list of strs or unicodes
-        :param properties_to_ignore: list of strs or unicodes
-        :param nodeclasses_to_include: list of strs or unicodes
-        :param nodeclasses_to_ignore: list of strs or unicodes
-        :param networks_to_include: list of strs or unicodes
-        :param networks_to_ignore: list of strs or unicodes
+        :type properties_to_include: list
+        :type properties_to_ignore: list
+        :type nodeclasses_to_include: list
+        :type nodeclasses_to_ignore: list
+        :type networks_to_include: list
+        :type networks_to_ignore: list
         :raise TypeError: if dmn_text isn't a str or unicode
         """
         if not isinstance(dmn_text, (unicode, str)):
@@ -71,12 +69,11 @@ class DynamicMetaNetwork:
         if dmn_tag.tag != 'DynamicMetaNetwork':
             return
 
-        self.load_from_tag(dmn_tag, properties_to_ignore, properties_to_include,
-                           nodeclasses_to_include, nodeclasses_to_ignore, networks_to_include, networks_to_ignore)
+        self.load_from_tag(dmn_tag, properties_to_include, properties_to_ignore, nodeclasses_to_include,
+                           nodeclasses_to_ignore, networks_to_include, networks_to_ignore)
 
-    def load_from_tag(self, dmn_tag, properties_to_include=list(), properties_to_ignore=list(),
-                      nodeclasses_to_include=list(), nodeclasses_to_ignore=list(),
-                      networks_to_include=list(), networks_to_ignore=list()):
+    def load_from_tag(self, dmn_tag, properties_to_include=None, properties_to_ignore=None, nodeclasses_to_include=None,
+                      nodeclasses_to_ignore=None, networks_to_include=None, networks_to_ignore=None):
         """
         Parses the content of an lxml _Element containing a Dynamic Meta-Network and loads the contents
         :param dmn_tag: An lxml _Element containing a Dynamic Meta-Network
@@ -86,13 +83,13 @@ class DynamicMetaNetwork:
         :param nodeclasses_to_ignore: a list of nodeclasses that should be ignored
         :param networks_to_include: a list of networks that should be included
         :param networks_to_ignore: a list of networks that should be ignored
-        :type dmn_tag: An lxml _Element containing a DynamicMetaNetwork
-        :type properties_to_include: list of strs or unicode
-        :type properties_to_ignore: list of strs or unicode
-        :type nodeclasses_to_include: list of strs or unicode
-        :type nodeclasses_to_ignore: list of strs or unicode
-        :type networks_to_include: list of strs or unicode
-        :type networks_to_ignore: list of strs or unicode
+        :type dmn_tag: lxml._Element
+        :type properties_to_include: list
+        :type properties_to_ignore: list
+        :type nodeclasses_to_include: list
+        :type nodeclasses_to_ignore: list
+        :type networks_to_include: list
+        :type networks_to_ignore: list
         :raise TypeError: if dnn isn't a BeautifulSoup Tag
         """
         #if not isinstance(dmn_tag, (unicode, str)):
@@ -109,9 +106,9 @@ class DynamicMetaNetwork:
 
         for mn_tag in dmn_tag.iterfind('MetaNetwork'):
             self.metanetworks.append(MetaNetwork())
-            self.metanetworks[-1].load_from_tag(mn_tag, properties_to_ignore, properties_to_include,
-                                                nodeclasses_to_include, nodeclasses_to_ignore,
-                                                networks_to_include, networks_to_ignore)
+            self.metanetworks[-1].load_from_tag(mn_tag, properties_to_include, properties_to_ignore,
+                                                nodeclasses_to_include, nodeclasses_to_ignore, networks_to_include,
+                                                networks_to_ignore)
 
     def write_dynetml(self, out_file_path):
         """
@@ -157,7 +154,7 @@ class DynamicMetaNetwork:
         return bs
 
     def pretty_print(self):
-        """Print the dynamic meta network"""
+        """Pretty print the dynamic meta network"""
         print '= Dynamic Meta-Network ='
         print '= Properties ='
         for attr in self.attributes:

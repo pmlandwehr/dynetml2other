@@ -26,7 +26,6 @@ class MetaNetwork:
     While ORA can constrain network properties on other dimensions, _no_other_properties_ will be automatically
     preserved if you start manipulating the networks.
     """
-
     def __init__(self):
         """Initializes a MetaNetwork"""
         self.attributes = {}
@@ -57,9 +56,9 @@ class MetaNetwork:
         if node_name is not None:
             dmlpu.check_key(node_name, 'node_name', self.__node_tree[nodeclass_name][nodeset_name][1], 'nodeset_name')
 
-    def load_from_dynetml(self, mn_text, properties_to_include=list(), properties_to_ignore=list(),
-                          nodeclasses_to_include=list(), nodeclasses_to_ignore=list(),
-                          networks_to_include=list(), networks_to_ignore=list()):
+    def load_from_dynetml(self, mn_text, properties_to_include=None, properties_to_ignore=None,
+                          nodeclasses_to_include=None, nodeclasses_to_ignore=None, networks_to_include=None,
+                          networks_to_ignore=None):
         """
         Parses XML containing a Meta-Network and loads the contents
         :param mn_text: XML containing a Meta-Network
@@ -70,12 +69,12 @@ class MetaNetwork:
         :param networks_to_include: a list of networks that should be included
         :param networks_to_ignore: a list of networks that should be ignored
         :param mn_text: str or unicode
-        :param properties_to_include: list of strs or unicodes
-        :param properties_to_ignore: list of strs or unicodes
-        :param nodeclasses_to_include: list of strs or unicodes
-        :param nodeclasses_to_ignore: list of strs or unicodes
-        :param networks_to_include: list of strs or unicodes
-        :param networks_to_ignore: list of strs or unicodes
+        :param properties_to_include: lists
+        :param properties_to_ignore: lists
+        :param nodeclasses_to_include: lists
+        :param nodeclasses_to_ignore: lists
+        :param networks_to_include: lists
+        :param networks_to_ignore: lists
         :raise TypeError: if mn_text isn't a str or unicode
         """
         dmlpu.check_type(mn_text, 'mn_text', (unicode, str))
@@ -85,13 +84,11 @@ class MetaNetwork:
         for attrib_key in mn_tag.attrib:
             self.attributes[attrib_key] = dmlpu.format_prop(mn_tag.attrib[attrib_key])
 
-        self.load_from_tag(mn_tag, properties_to_include, properties_to_ignore,
-                           nodeclasses_to_include, nodeclasses_to_ignore,
-                           networks_to_include, networks_to_ignore)
+        self.load_from_tag(mn_tag, properties_to_include, properties_to_ignore, nodeclasses_to_include,
+                           nodeclasses_to_ignore, networks_to_include, networks_to_ignore)
 
-    def load_from_tag(self, mn_tag, properties_to_include=list(), properties_to_ignore=list(),
-                      nodeclasses_to_include=list(), nodeclasses_to_ignore=list(),
-                      networks_to_include=list(), networks_to_ignore=list()):
+    def load_from_tag(self, mn_tag, properties_to_include=None, properties_to_ignore=None, nodeclasses_to_include=None,
+                      nodeclasses_to_ignore=None, networks_to_include=None, networks_to_ignore=None):
         """
         Parses the content of an lxml _Element containing a Meta-Network and loads the contents
         :param mn_tag: An lxml _Element containing a Dynamic Meta-Network
@@ -102,12 +99,12 @@ class MetaNetwork:
         :param networks_to_include: a list of networks that should be included
         :param networks_to_ignore: a list of networks that should be ignored
         :type mn_tag: An lxml _Element containing a DynamicMetaNetwork
-        :type properties_to_include: list of strs or unicode
-        :type properties_to_ignore: list of strs or unicode
-        :type nodeclasses_to_include: list of strs or unicode
-        :type nodeclasses_to_ignore: list of strs or unicode
-        :type networks_to_include: list of strs or unicode
-        :type networks_to_ignore: list of strs or unicode
+        :type properties_to_include: list
+        :type properties_to_ignore: list
+        :type nodeclasses_to_include: list
+        :type nodeclasses_to_ignore: list
+        :type networks_to_include: list
+        :type networks_to_ignore: list
         :raise TypeError: if dnn isn't a BeautifulSoup Tag
         """
         prop_inclusion_test = dmlpu.validate_and_get_inclusion_test(
@@ -281,6 +278,37 @@ class MetaNetwork:
             self.__node_tree[nodeclass_name][nodeset_name][node_name]
         del self.__node_tree[nodeclass_name][nodeset_name][node_name]
         self._rename_network_nodes(nodeclass_name, nodeset_name, node_name, new_node_name)
+
+    def union_nodesets(self, nodeclass_name, *args):
+        """
+        Takes two nodesets and combines them in a new nodeset. Properties and entries from the first nodeset override
+        those from the second nodeset.
+        :param nodeclass_name: The name of the parent nodeclass of nodeset_one_name and nodeset_two_name
+        :param nodeset_one_name: The name of the first nodeset in the union.
+        :param nodset_two_name: The name of the second ndeset in the union.
+        :param other_nodesets: union_nodesets takes a *args argument, so any number of nodesets is acceptable
+        :param new_nodeset_name: The name of the new nodeset to be created
+        :type nodeset_one_name: str or unicode
+        :type nodeset_two_name: str or unicode
+        :type new_nodeset_name: str or unicode
+        """
+        if len(args) < 3:
+            raise ValueError('Need at least 3 argumets; got {0}'.format(len(args)))
+
+        for nodeset_name in args[:-1]:
+            self.__validate_tree_branch(nodeclass_name, nodeset_name)
+        dmlpu.check_type(args[-1], 'new_nodeset_name', (str, unicode))
+        dmlpu.check_key(args[-1], 'union_nodeset', self.__node_tree[nodeclass_name], nodeclass_name,
+                        False)
+
+        merge_nodeset = self.__node_tree[nodeclass_name][args[-2]]
+        for i in range(len(args)-3, -1, -1):
+            for entry in self.__node_tree[nodeclass_name][args[i]][1]:
+                merge_nodeset[1][entry] = self.__node_tree[nodeclass_name][args[i]][1][entry]
+            for entry in self.__node_tree[nodeclass_name][args[i]][0]:
+                merge_nodeset[0][entry] = self.__node_tree[nodeclass_name][args[i]][0][entry]
+
+        self.__node_tree[nodeclass_name][args[-1]] = merge_nodeset
 
     def write_dynetml(self, out_file_path):
         """
