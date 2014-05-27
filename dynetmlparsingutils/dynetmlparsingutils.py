@@ -29,12 +29,14 @@ def nodeclass_dict():
 
 def check_key(var, var_name, map, map_name, check_if_in_map=True):
     """
-    Helper function for validating if a key is in a map
+    Helper function for checking if a key is in a map
     :param var: the variable which needs to be checked
     :param var_name: the name of the variable
     :param map: the map
     :param map_name: the name of the map
     :param check_if_in_map: if True, verify that var is in map. If False, check if var is not in map
+    :type var_name: str, unicode
+    :type map_name: str, unicode
     :raise KeyError: if var is not or is in map, depending on check_if_in_map
     """
     if check_if_in_map and var not in map:
@@ -44,21 +46,38 @@ def check_key(var, var_name, map, map_name, check_if_in_map=True):
 
 def check_type(var, var_name, allowable_types):
     """
-    Helper function for validating a variable's type
+    Helper function for checking a variable's type
     :param var: the variable which needs its type checked
     :param var_name: the name of the variable
     :param allowable_types: a type or tuple of types that var can be
+    :type var_name: str, unicode
     :raise TypeError: if var is not a type included in allowable_types
     """
     if not isinstance(var, allowable_types):
         raise TypeError('{0} must be of type {1}'.format(var_name, str(allowable_types)))
 
+def check_contained_types(iterable, iterable_name, allowable_types):
+    """
+    Helper function for validating that an iterable object only contains allowed types.
+    :param iterable: the tuple or list to be evaluated
+    :param iterable_name: the name of the iterable
+    :param allowable_types: the types the iterable can be.
+    :type iterable: tuple, list
+    :type iterable_name: str, unicode
+    :raise TypeError: if iterable is not a list or tuple
+    :raise TypeError: if an entry in the iterable isn't an allowable type.
+    """
+    if not isinstance(iterable, (tuple, list)):
+        raise TypeError('{0} must be a tuple or list'.format(iterable_name))
+    for entry in iterable:
+        if not isinstance(entry, allowable_types):
+            raise TypeError('{0} can only contain types {1}'.format(iterable_name, allowable_types))
 
 def validate_and_get_inclusion_test(include_tuple, ignore_tuple):
     """
     A method for validating variables and then returning an inclusion test
     :param include_tuple: A two element tuple, the first element is a list of strings, the second is the list's name
-    :param ignore_list: A two element tuple, the first element is a list of strings, the second is the list's name
+    :param ignore_tuple: A two element tuple, the first element is a list of strings, the second is the list's name
     :type include_tuple: tuple
     :type ignore_tuple: tuple
     :returns: a test for whether or not an item should be included
@@ -69,10 +88,9 @@ def validate_and_get_inclusion_test(include_tuple, ignore_tuple):
     if ignore_tuple[0] is None:
         ignore_tuple = [],''
 
-    for pair in include_tuple, ignore_tuple:
-        check_type(pair[0], pair[1], list)
-        if not all(isinstance(entry, (str, unicode)) for entry in pair[0]):
-            raise TypeError('{0} can only contain elements of type str or unicode'.format(pair[1]))
+    for pair, name in (include_tuple, 'include_tuple'), (ignore_tuple, 'ignore_tuple'):
+        check_contained_types(pair[0], name, (str, unicode))
+        check_contained_types(pair[1], name, (str, unicode))
 
     if len(include_tuple[0]) > 0 and len(ignore_tuple[0]) > 0:
             raise ValueError('{0} and {1} cannot both contain values'.format(include_tuple[1], ignore_tuple[1]))

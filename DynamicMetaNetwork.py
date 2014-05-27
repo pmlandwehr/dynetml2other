@@ -5,6 +5,7 @@ __author__ = 'plandweh'
 
 from bs4 import BeautifulSoup
 import codecs
+from datetime import datetime
 import dynetmlparsingutils as dmlpu
 from lxml import etree
 import os
@@ -42,7 +43,7 @@ class DynamicMetaNetwork:
 
     def load_from_dynetml(self, dmn_text, properties_to_include=None, properties_to_ignore=None,
                           nodeclasses_to_include=None, nodeclasses_to_ignore=None, networks_to_include=None,
-                          networks_to_ignore=None):
+                          networks_to_ignore=None, start_date=None, end_date=None):
         """
         Parses XML containing a Dynamic Meta-Network and loads the contents
         :param dmn_text: XML containing a Dynamic Meta-Network
@@ -52,6 +53,8 @@ class DynamicMetaNetwork:
         :param nodeclasses_to_ignore: a list of nodeclasses that should be ignored
         :param networks_to_include: a list of networks that should be included
         :param networks_to_ignore: a list of networks that should be ignored
+        :param start_date: MetaNetworks from before this datetime should not be imported
+        :param end_date: MetaNetworks from after this datetime should not be imported
         :param dmn_text: str or unicode
         :type properties_to_include: list
         :type properties_to_ignore: list
@@ -59,6 +62,8 @@ class DynamicMetaNetwork:
         :type nodeclasses_to_ignore: list
         :type networks_to_include: list
         :type networks_to_ignore: list
+        :type start_date: datetime.datetime
+        :type end_date: datetime.datetime
         :raise TypeError: if dmn_text isn't a str or unicode
         """
         if not isinstance(dmn_text, (unicode, str)):
@@ -70,10 +75,11 @@ class DynamicMetaNetwork:
             return
 
         self.load_from_tag(dmn_tag, properties_to_include, properties_to_ignore, nodeclasses_to_include,
-                           nodeclasses_to_ignore, networks_to_include, networks_to_ignore)
+                           nodeclasses_to_ignore, networks_to_include, networks_to_ignore, start_date, end_date)
 
     def load_from_tag(self, dmn_tag, properties_to_include=None, properties_to_ignore=None, nodeclasses_to_include=None,
-                      nodeclasses_to_ignore=None, networks_to_include=None, networks_to_ignore=None):
+                      nodeclasses_to_ignore=None, networks_to_include=None, networks_to_ignore=None, start_date=None,
+                      end_date=None):
         """
         Parses the content of an lxml _Element containing a Dynamic Meta-Network and loads the contents
         :param dmn_tag: An lxml _Element containing a Dynamic Meta-Network
@@ -83,6 +89,8 @@ class DynamicMetaNetwork:
         :param nodeclasses_to_ignore: a list of nodeclasses that should be ignored
         :param networks_to_include: a list of networks that should be included
         :param networks_to_ignore: a list of networks that should be ignored
+        :param start_date: MetaNetworks from before this datetime should not be imported
+        :param end_date: MetaNetworks from after this datetime should not be imported
         :type dmn_tag: lxml._Element
         :type properties_to_include: list
         :type properties_to_ignore: list
@@ -90,7 +98,9 @@ class DynamicMetaNetwork:
         :type nodeclasses_to_ignore: list
         :type networks_to_include: list
         :type networks_to_ignore: list
-        :raise TypeError: if dnn isn't a BeautifulSoup Tag
+        :type start_date: datetime
+        :type end_date: datetime
+        :raise TypeError: if dnn isn't an lxml._Element
         """
         #if not isinstance(dmn_tag, (unicode, str)):
         #    raise TypeError('load_from_dynetml needs text containing XML; got {0}'.format(type(dnn_text)))
@@ -105,10 +115,58 @@ class DynamicMetaNetwork:
             from MetaNetworkNetworkX import MetaNetworkNX as MetaNetwork
 
         for mn_tag in dmn_tag.iterfind('MetaNetwork'):
+
+            if start_date is not None:
+                if start_date > datetime.strptime(mn_tag.attrib['id'], '%Y%m%dT%H:%M:%S'):
+                    continue
+
+            if end_date is not None:
+                if end_date < datetime.strptime(mn_tag.attrib['id'], '%Y%m%dT%H:%M:%S'):
+                    continue
+
             self.metanetworks.append(MetaNetwork())
             self.metanetworks[-1].load_from_tag(mn_tag, properties_to_include, properties_to_ignore,
                                                 nodeclasses_to_include, nodeclasses_to_ignore, networks_to_include,
                                                 networks_to_ignore)
+
+    def drop_metanetworks_before(self, start_date):
+        """
+        Drop metanetworks that occur before a given date
+        :param start_date: Metanetworks from times before start_date should be dropped
+        :type start_date: datetime
+        """
+        while len(self.metanetworks) > 0 and \
+                datetime.strptime(self.metanetworks[0].attributes['id'], '%Y%m%dT%H:%M:%S') < start_date:
+            self.metanetworks.remove(0)
+
+    def drop_metanetworks_after(self, end_date):
+        """
+        Drop metanetworks that occur after a given date
+        :param end_date: Metanetworks from times after end_date should be dropped
+        :type end_date: datetime
+        """
+        while len(self.metanetworks) > 0 and \
+                datetime.strptime(self.metanetworks[-1].attributes['id'], '%Y%m%dT%H:%M:%S') > end_date:
+            self.metanetworks.remove(-1)
+
+    def drop_metanetworks_for_ranges(self, range_tuples, keep_in_range=True):
+        """
+        Drop metanetworks relative to a number of range_tuples
+        :param range_tuples: a list of tuples consisting of a start date and end date.
+        :param keep_in_range: if True, dates within the range are retained. If false, dates within the range are
+        discarded
+        :type range_tuples: list
+        :type keep_in_range: bool
+        """
+        dmlpu.check_contained_types(range_tuples, 'range_tuples', datetime)
+
+        for mn in self.metanetworks:
+            date_val = datetime.strptime(self.metanetworks[-1].attributes['id'], '%Y%m%dT%H:%M:%S')
+            for r_t in range_tuples:
+                if (keep_in_range and r_t[0] > date_val or r_t[1] < date_val) or \
+                (keep_in_range is False and r_t[0] <= date_val and r_t[1] >= date_val):
+                    self.metanetworks.remove(mn)
+
 
     def write_dynetml(self, out_file_path):
         """
