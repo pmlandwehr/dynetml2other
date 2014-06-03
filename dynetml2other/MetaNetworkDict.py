@@ -3,7 +3,6 @@
 
 __author__ = 'plandweh'
 
-# from bs4 import BeautifulSoup
 from collections import defaultdict
 import dynetmlparsingutils as dmlpu
 from lxml import etree

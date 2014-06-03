@@ -3,7 +3,6 @@
 
 __author__ = 'plandweh'
 
-from bs4 import BeautifulSoup
 import codecs
 from datetime import datetime
 import dynetmlparsingutils as dmlpu

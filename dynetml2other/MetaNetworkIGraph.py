@@ -3,7 +3,6 @@
 
 __author__ = 'plandweh'
 
-#from bs4 import BeautifulSoup
 from collections import OrderedDict
 import dynetmlparsingutils as dmlpu
 import igraph
