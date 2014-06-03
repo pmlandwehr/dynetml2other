@@ -3,7 +3,7 @@
 
 __author__ = 'plandweh'
 
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 import codecs
 from collections import defaultdict
 import dynetmlparsingutils as dmlpu
@@ -254,7 +254,6 @@ class MetaNetwork:
 
         self.__node_tree[nodeclass_name][nodeset_name][1][node_name] = property_dict
 
-
     def rename_node(self, nodeclass_name, nodeset_name, node_name, new_node_name):
         """
         Rename a particular node, both in the node tree and in the networks containing it.
@@ -318,64 +317,87 @@ class MetaNetwork:
         :raise TypeError: if out_file_path isn't a sting
         :raise IOError: if out_file_path is a directory
         """
-        if type(out_file_path) not in [str, unicode]:
-            raise TypeError
+        dmlpu.check_type(out_file_path, 'out_file_path', (str, unicode))
 
         if os.path.exists(out_file_path) and os.path.isdir(out_file_path):
-            raise IOError
+            raise IOError('out_file_path cannot be a directory')
 
-        bs = self.convert_to_dynetml(True)
+        # bs = self.convert_to_dynetml(True)
+        #
+        # with codecs.open(out_file_path, 'w', 'utf8') as outfile:
+        #     outfile.write(bs.prettify())
+        xml_root = self.convert_to_dynetml()
 
         with codecs.open(out_file_path, 'w', 'utf8') as outfile:
-            outfile.write(bs.prettify())
+            outfile.write('<?xml version="1.0" standalone="yes"?>\n\n')
+            outfile.write(etree.tostring(xml_root, pretty_print=True))
 
-    def convert_to_dynetml(self, is_entire_file=False):
+    def convert_to_dynetml(self):
         """
         Converts the graph to dynetml and returns a BeautifulSoup tag
-        :param is_entire_file: if True, wraps value as a soup. If False, returns the top tag
-        :type is_entire_file: bool
         :return: bs4.element.Tag
         :raise TypeError: if is_entire_file isn't a bool
         """
-        dmlpu.check_type(is_entire_file, 'is_entire_file', bool)
 
-        bs = BeautifulSoup(features='xml')
-        bs.append(bs.new_tag('MetaNetwork'))
+        # bs = BeautifulSoup(features='xml')
+        # bs.append(bs.new_tag('MetaNetwork'))
+        #
+        # for attr in self.attributes:
+        #     bs.MetaNetwork[attr] = dmlpu.unformat_prop(self.attributes[attr])
+        #
+        # bs.MetaNetwork.append(dmlpu.get_property_identities_tag(self.propertyIdentities))
+        #
+        # bs.MetaNetwork.append(bs.new_tag('properties'))
+        # for key in self.properties:
+        #     prop_tag = bs.new_tag('property')
+        #     prop_tag['id'] = key
+        #     prop_tag['value'] = dmlpu.unformat_prop(self.properties[key])
+        #     bs.MetaNetwork.properties.append(prop_tag)
+        #
+        # bs.MetaNetwork.append(bs.new_tag('nodes'))
+        # for class_type in self.__node_tree:
+        #     for class_id in self.__node_tree[class_type]:
+        #         nodeclass_tag = bs.new_tag('nodeclass', type=class_type, id=class_id)
+        #         nodeclass_tag.append(dmlpu.get_property_identities_tag(self.__node_tree[class_type][class_id][0]))
+        #
+        #         for key in self.__node_tree[class_type][class_id][1]:
+        #             node_tag = bs.new_tag('node', id=key)
+        #             for attr in self.__node_tree[class_type][class_id][1][key][0]:
+        #                 node_tag[attr] = dmlpu.unformat_prop(self.__node_tree[class_type][class_id][1][key][0][attr])
+        #             node_tag.append(dmlpu.get_properties_tag(self.__node_tree[class_type][class_id][1][key][1]))
+        #             nodeclass_tag.append(node_tag)
+        #
+        #         bs.MetaNetwork.nodes.append(nodeclass_tag)
+        #
+        # networks_tag = self._get_networks_tag()
+        # bs.MetaNetwork.networks.append(networks_tag)
+        #
+        # if not is_entire_file:
+        #     bs = bs.MetaNetwork
+        #
+        # return bs
+        mn = etree.Element('MetaNetwork')
 
         for attr in self.attributes:
-            bs.MetaNetwork[attr] = dmlpu.unformat_prop(self.attributes[attr])
+            mn.attrib[attr] = dmlpu.unformat_prop(self.attributes[attr])
 
-        bs.MetaNetwork.append(dmlpu.get_property_identities_tag(self.propertyIdentities))
+        etree.SubElement(mn, dmlpu.get_property_identities_tag(self.propertyIdentities))
 
-        bs.MetaNetwork.append(bs.new_tag('properties'))
+        properties_tag = etree.SubElement(mn, 'properties')
         for key in self.properties:
-            prop_tag = bs.new_tag('property')
-            prop_tag['id'] = key
+            prop_tag = etree.SubElement(properties_tag, 'property')
+            prop_tag.attrib['id'] = key
             prop_tag['value'] = dmlpu.unformat_prop(self.properties[key])
-            bs.MetaNetwork.properties.append(prop_tag)
 
-        bs.MetaNetwork.append(bs.new_tag('nodes'))
+        nodes_tag = etree.SubElement(mn, 'nodes')
         for class_type in self.__node_tree:
             for class_id in self.__node_tree[class_type]:
-                nodeclass_tag = bs.new_tag('nodeclass', type=class_type, id=class_id)
-                nodeclass_tag.append(dmlpu.get_property_identities_tag(self.__node_tree[class_type][class_id][0]))
+                nodeclass_tag = etree.SubElement(nodes_tag, 'nodeclass', attrib={'type': class_type, 'id': class_id})
+                etree.SubElement(nodeclass_tag, dmlpu.get_property_identities_tag(self.__node_tree[class_type][class_id][0]))
 
-                for key in self.__node_tree[class_type][class_id][1]:
-                    node_tag = bs.new_tag('node', id=key)
-                    for attr in self.__node_tree[class_type][class_id][1][key][0]:
-                        node_tag[attr] = dmlpu.unformat_prop(self.__node_tree[class_type][class_id][1][key][0][attr])
-                    node_tag.append(dmlpu.get_properties_tag(self.__node_tree[class_type][class_id][1][key][1]))
-                    nodeclass_tag.append(node_tag)
+        etree.SubElement(mn, self._get_networks_tag())
 
-                bs.MetaNetwork.nodes.append(nodeclass_tag)
-
-        networks_tag = self._get_networks_tag()
-        bs.MetaNetwork.networks.append(networks_tag)
-
-        if not is_entire_file:
-            bs = bs.MetaNetwork
-
-        return bs
+        return mn
 
     def pretty_print(self):
         """Pretty prints the meta network"""

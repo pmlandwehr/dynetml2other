@@ -1,6 +1,7 @@
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 from collections import defaultdict
 from datetime import datetime
+from lxml import etree
 
 
 def node_tuple():
@@ -155,21 +156,33 @@ def get_property_identities_tag(property_identities_dict):
     :returns: a <propertyIdentities> BeautifulSoup Tag, containing appropriate <propertyIdentity> tags
     :rtype: bs4.element.Tag
     """
-    property_identities_tag = BeautifulSoup(features='xml').new_tag('propertyIdentities')
-
+    # property_identities_tag = BeautifulSoup(features='xml').new_tag('propertyIdentities')
+    #
+    # if not isinstance(property_identities_dict, dict):
+    #     return property_identities_tag
+    #
+    # for key in property_identities_dict:
+    #
+    #     if not isinstance(property_identities_dict[key], tuple) or len(property_identities_dict[key]) != 2:
+    #         continue
+    #
+    #     prop_ident_tag = BeautifulSoup(features='xml').new_tag('propertyIdentity')
+    #     prop_ident_tag['id'] = key
+    #     prop_ident_tag['type'] = property_identities_dict[key][0]
+    #     prop_ident_tag['singleValued'] = unformat_prop(property_identities_dict[key][1])
+    #     property_identities_tag.append(prop_ident_tag)
+    #
+    # return property_identities_tag
+    property_identities_tag = etree.Element('propertyIdentities')
     if not isinstance(property_identities_dict, dict):
         return property_identities_tag
 
     for key in property_identities_dict:
-
         if not isinstance(property_identities_dict[key], tuple) or len(property_identities_dict[key]) != 2:
             continue
 
-        prop_ident_tag = BeautifulSoup(features='xml').new_tag('propertyIdentity')
-        prop_ident_tag['id'] = key
-        prop_ident_tag['type'] = property_identities_dict[key][0]
-        prop_ident_tag['singleValued'] = unformat_prop(property_identities_dict[key][1])
-        property_identities_tag.append(prop_ident_tag)
+        etree.SubElement(property_identities_tag, 'propertyIdentity', attrib={ 'id': key,
+            'type': property_identities_dict[key][0], 'singleValued': unformat_prop(property_identities_dict[key][1])})
 
     return property_identities_tag
 
@@ -202,16 +215,25 @@ def get_properties_tag(properties_dict):
     :returns: a BeautifulSoup <properties> tag, containing appropriate <property> tags
     :rtype: bs4.element.Tag
     """
-    properties_tag = BeautifulSoup(features='xml').new_tag('properties')
+    # properties_tag = BeautifulSoup(features='xml').new_tag('properties')
+    #
+    # if not isinstance(properties_dict, dict):
+    #     return properties_tag
+    #
+    # for key in properties_dict:
+    #     prop_tag = BeautifulSoup(features='xml').new_tag('property')
+    #     prop_tag['id'] = key
+    #     prop_tag['value'] = unformat_prop(properties_dict[key])
+    #     properties_tag.append(prop_tag)
+    #
+    # return properties_tag
+    properties_tag = etree.Element('properties')
 
     if not isinstance(properties_dict, dict):
         return properties_tag
 
     for key in properties_dict:
-        prop_tag = BeautifulSoup(features='xml').new_tag('property')
-        prop_tag['id'] = key
-        prop_tag['value'] = unformat_prop(properties_dict[key])
-        properties_tag.append(prop_tag)
+        etree.SubElement(properties_tag, 'property', attrib={'id': key, 'value': unformat_prop(properties_dict[key])})
 
     return properties_tag
 

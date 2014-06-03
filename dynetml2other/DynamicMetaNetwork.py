@@ -167,7 +167,6 @@ class DynamicMetaNetwork:
                 (keep_in_range is False and r_t[0] <= date_val and r_t[1] >= date_val):
                     self.metanetworks.remove(mn)
 
-
     def write_dynetml(self, out_file_path):
         """
         Writes dynamic meta network to a file
@@ -182,34 +181,43 @@ class DynamicMetaNetwork:
         if os.path.exists(out_file_path) and os.path.isdir(out_file_path):
             raise IOError('out_file_path cannot be a directory')
 
-        bs = self.convert_to_dynetml(True)
+        # bs = self.convert_to_dynetml(True)
+        #
+        # with codecs.open(out_file_path, 'w', 'utf8') as outfile:
+        #     outfile.write(bs.prettify())
+        xml_root = self.convert_to_dynetml()
 
         with codecs.open(out_file_path, 'w', 'utf8') as outfile:
-            outfile.write(bs.prettify())
+            outfile.write('<?xml version="1.0" standalone="yes"?>\n\n')
+            outfile.write(etree.tostring(xml_root, pretty_print=True))
 
-    def convert_to_dynetml(self, is_entire_file=False):
+    def convert_to_dynetml(self):
         """
         Converts the dynamic meta network to a BeautifulSoup Tag and returns it
         :param is_entire_file: If True, Tag will include XML wrapper code
-        :type is_entire_file: bool
         :return: a BeautifulSoup Tag
         :raise TypeError: if is_entire_file is not a bool
         """
-        if not isinstance(is_entire_file, bool):
-            raise TypeError('is_entire_file must be True or False')
-
-        bs = BeautifulSoup(features='xml')
-        bs.append(bs.new_tag('DynamicMetaNetwork'))
+        # bs = BeautifulSoup(features='xml')
+        # bs.append(bs.new_tag('DynamicMetaNetwork'))
+        # for attr in self.attributes:
+        #     bs.DynamicMetaNetwork[attr] = dmlpu.unformat_prop(self.attributes[attr])
+        #
+        # for mn in self.metanetworks:
+        #     bs.DynamicMetaNetwork.append(mn.convert_to_dynetml())
+        #
+        # if not is_entire_file:
+        #     bs = bs.DynamicMetaNetwork
+        #
+        # return bs
+        dmn = etree.Element('DynamicMetaNetwork')
         for attr in self.attributes:
-            bs.DynamicMetaNetwork[attr] = dmlpu.unformat_prop(self.attributes[attr])
+            dmn.attrib[attr] = dmlpu.unformat_prop(self.attributes[attr])
 
         for mn in self.metanetworks:
-            bs.DynamicMetaNetwork.append(mn.convert_to_dynetml())
+            etree.SubElement(dmn, mn.convert_to_dynetml())
 
-        if not is_entire_file:
-            bs = bs.DynamicMetaNetwork
-
-        return bs
+        return dmn
 
     def pretty_print(self):
         """Pretty print the dynamic meta network"""

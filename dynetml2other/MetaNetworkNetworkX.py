@@ -3,8 +3,9 @@
 
 __author__ = 'plandweh'
 
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 import dynetmlparsingutils as dmlpu
+from lxml import etree
 from MetaNetwork import MetaNetwork
 from networkx import nx
 
@@ -52,27 +53,45 @@ class MetaNetworkNX (MetaNetwork):
         self.networks[nk_tag.attrib['id']] = g
 
     def _get_networks_tag(self):
-        bs = BeautifulSoup()
-        networks_tag = bs.new_tag('networks')
+        # bs = BeautifulSoup()
+        # networks_tag = bs.new_tag('networks')
+        # for key in self.networks:
+        #     network_tag = bs.new_tag('network')
+        #     network_tag['sourceType'] = self.networks[key].graph['sourceType']
+        #     network_tag['source'] = self.networks[key].graph['source']
+        #     network_tag['targetType'] = self.networks[key].graph['targetType']
+        #     network_tag['target'] = self.networks[key].graph['target']
+        #     network_tag['id'] = key
+        #     network_tag['isDirected'] = dmlpu.unformat_prop(self.networks[key].graph['isDirected'])
+        #     network_tag['allowSelfLoops'] = dmlpu.unformat_prop(self.networks[key].graph['allowSelfLoops'])
+        #     network_tag['isBinary'] = dmlpu.unformat_prop(self.networks[key].graph['isBinary'])
+        #
+        #     if self.networks[key].graph['isBinary']:
+        #         for edge in self.networks[key].edges_iter(data=True):
+        #             network_tag.append(bs.new_tag('link', source=edge[0], target=edge[1], value=edge[2]['weight']))
+        #     else:
+        #         for edge in self.networks[key].edges_iter():
+        #             network_tag.append(bs.new_tag('link', source=edge[0], target=edge[1]))
+        #
+        #     networks_tag.append(network_tag)
+        #
+        # return networks_tag
+        networks_tag = etree.Element('networks')
         for key in self.networks:
-            network_tag = bs.new_tag('network')
-            network_tag['sourceType'] = self.networks[key].graph['sourceType']
-            network_tag['source'] = self.networks[key].graph['source']
-            network_tag['targetType'] = self.networks[key].graph['targetType']
-            network_tag['target'] = self.networks[key].graph['target']
-            network_tag['id'] = key
-            network_tag['isDirected'] = dmlpu.unformat_prop(self.networks[key].graph['isDirected'])
-            network_tag['allowSelfLoops'] = dmlpu.unformat_prop(self.networks[key].graph['allowSelfLoops'])
-            network_tag['isBinary'] = dmlpu.unformat_prop(self.networks[key].graph['isBinary'])
+            network_tag = etree.SubElement(networks_tag, 'network', attrib={
+                'sourceType': self.networks[key].graph['sourceType'], 'source': self.networks[key].graph['source'],
+                'targetType': self.networks[key].graph['targetType'], 'target': self.networks[key].graph['target'],
+                'id': key, 'isDirected': dmlpu.unformat_prop(self.networks[key].graph['isDirected']),
+                'allowSelfLoops': dmlpu. dmlpu.unformat_prop(self.networks[key].graph['isBinary'])
+            })
 
-            if self.networks[key].graph['isBinary']:
+            if not self.networks[key].graph['isBinary']:
                 for edge in self.networks[key].edges_iter(data=True):
-                    network_tag.append(bs.new_tag('link', source=edge[0], target=edge[1], value=edge[2]['weight']))
+                    etree.SubElement(network_tag, 'link', attrib={'source': edge[0], 'target': edge[1],
+                                                                  'value': edge[2]['weight']})
             else:
                 for edge in self.networks[key].edges_iter():
-                    network_tag.append(bs.new_tag('link', source=edge[0], target=edge[1]))
-
-            networks_tag.append(network_tag)
+                    etree.SubElement(network_tag, 'link', attrib={'source': edge[0], 'target': edge[1]})
 
         return networks_tag
 

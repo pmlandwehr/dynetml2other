@@ -3,10 +3,11 @@
 
 __author__ = 'plandweh'
 
-from bs4 import BeautifulSoup
+#from bs4 import BeautifulSoup
 from collections import OrderedDict
 import dynetmlparsingutils as dmlpu
 import igraph
+from lxml import etree
 from MetaNetwork import MetaNetwork
 
 
@@ -61,29 +62,48 @@ class MetaNetworkIG (MetaNetwork):
         self.networks[nk_tag.attrib['id']] = id_vertex_dict, g
 
     def _get_networks_tag(self):
-        bs = BeautifulSoup()
-        networks_tag = bs.new_tag('networks')
+        # bs = BeautifulSoup()
+        # networks_tag = bs.new_tag('networks')
+        # for key in self.networks:
+        #     network_tag = bs.new_tag('network')
+        #     network_tag['sourceType'] = self.networks[key][1]['sourceType']
+        #     network_tag['source'] = self.networks[key][1]['source']
+        #     network_tag['targetType'] = self.networks[key][1]['targetType']
+        #     network_tag['target'] = self.networks[key][1]['target']
+        #     network_tag['id'] = key
+        #     network_tag['isDirected'] = dmlpu.unformat_prop(self.networks[key]['isDirected'])
+        #     network_tag['allowSelfLoops'] = dmlpu.unformat_prop(self.networks[key]['allowSelfLoops'])
+        #     network_tag['isBinary'] = dmlpu.unformat_prop(self.networks[key]['isBinary'])
+        #
+        #     e_l = self.networks[key].edge_list()
+        #     if self.networks[key]['isBinary']:
+        #         for i in range(len(e_l)):
+        #             network_tag.append(bs.new_tag('link', source=e_l[i][0], target=e_l[i][1]))
+        #     else:
+        #         for i in range(len(e_l)):
+        #             network_tag.append(bs.new_tag('link', source=e_l[i][0], target=e_l[i][1],
+        #                                           value=self.networks[key].es[i]['weight']))
+        #
+        #     networks_tag.append(network_tag)
+        #
+        # return networks_tag
+        networks_tag = etree.Element('networks')
         for key in self.networks:
-            network_tag = bs.new_tag('network')
-            network_tag['sourceType'] = self.networks[key][1]['sourceType']
-            network_tag['source'] = self.networks[key][1]['source']
-            network_tag['targetType'] = self.networks[key][1]['targetType']
-            network_tag['target'] = self.networks[key][1]['target']
-            network_tag['id'] = key
-            network_tag['isDirected'] = dmlpu.unformat_prop(self.networks[key]['isDirected'])
-            network_tag['allowSelfLoops'] = dmlpu.unformat_prop(self.networks[key]['allowSelfLoops'])
-            network_tag['isBinary'] = dmlpu.unformat_prop(self.networks[key]['isBinary'])
+            network_tag = etree.SubElement(networks_tag, 'network', attrib={
+                'sourceType': self.networks[key][1]['sourceType'], 'source': self.networks[key][1]['source'],
+                'targetType': self.networks[key][1]['targetType'], 'target': self.networks[key][1]['target'],
+                'id': key, 'isDirected': dmlpu.unformat_prop(self.networks[key]['isDirected']),
+                'allowSelfLoops': dmlpu.unformat_prop(self.networks[key]['allowSelfLoops']),
+                'isBinary': dmlpu.unformat_prop(self.networks[key]['isBinary'])})
 
             e_l = self.networks[key].edge_list()
             if self.networks[key]['isBinary']:
                 for i in range(len(e_l)):
-                    network_tag.append(bs.new_tag('link', source=e_l[i][0], target=e_l[i][1]))
+                    etree.SubElement(network_tag, 'link', attrib={'source': e_l[i][0], 'target': e_l[i][1]})
             else:
                 for i in range(len(e_l)):
-                    network_tag.append(bs.new_tag('link', source=e_l[i][0], target=e_l[i][1],
-                                                  value=self.networks[key].es[i]['weight']))
-
-            networks_tag.append(network_tag)
+                    etree.SubElement(network_tag, 'link', attrib={'source': e_l[i][0], 'target': e_l[i][1],
+                                                                  'value': self.networks[key].es[i]['weight']})
 
         return networks_tag
 
