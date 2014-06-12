@@ -30,7 +30,7 @@ class DynamicMetaNetwork:
         if not isinstance(network_format, (str, unicode)):
             raise TypeError('network_format must be a str or unicode')
         self.__network_format = network_format.lower()
-        if self.__network_format not in ['doct', 'igraph', 'networkx']:
+        if self.__network_format not in ['dict', 'igraph', 'networkx']:
             raise ValueError('network_format must be "dict", "igraph" or "networkx"; got {0}'.format(network_format))
 
         self.attributes = {}
@@ -193,7 +193,6 @@ class DynamicMetaNetwork:
     def convert_to_dynetml(self):
         """
         Converts the dynamic meta network to a BeautifulSoup Tag and returns it
-        :param is_entire_file: If True, Tag will include XML wrapper code
         :return: a BeautifulSoup Tag
         :raise TypeError: if is_entire_file is not a bool
         """

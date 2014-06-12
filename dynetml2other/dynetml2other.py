@@ -44,10 +44,11 @@ def dynetml2other(dynetml_path, network_format):
         return None
 
     outnetwork = None
-    if root.getroot().tag == 'DynamicMetaNetwork':
+    root_tag = root.getroot().tag
+    if root_tag in ['DynamicMetaNetwork', 'DynamicNetwork']:
         outnetwork = DynamicMetaNetwork(network_format.lower())
         outnetwork.load_from_tag(root.getroot())
-    elif root.getroot().tag == 'MetaNetwork':
+    elif root_tag == 'MetaNetwork':
         if network_format.lower() == 'dict':
             from MetaNetworkDict import MetaNetworkDict as MetaNetwork
         elif network_format.lower() == 'igraph':

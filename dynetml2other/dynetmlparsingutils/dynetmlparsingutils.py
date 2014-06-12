@@ -45,6 +45,7 @@ def check_key(var, var_name, map, map_name, check_if_in_map=True):
     elif not check_if_in_map and var in map:
         raise KeyError('{0} in {1}; looked for {2}'.format(var_name, map_name, var))
 
+
 def check_type(var, var_name, allowable_types):
     """
     Helper function for checking a variable's type
@@ -56,6 +57,7 @@ def check_type(var, var_name, allowable_types):
     """
     if not isinstance(var, allowable_types):
         raise TypeError('{0} must be of type {1}'.format(var_name, str(allowable_types)))
+
 
 def check_contained_types(iterable, iterable_name, allowable_types):
     """
@@ -74,6 +76,7 @@ def check_contained_types(iterable, iterable_name, allowable_types):
         if not isinstance(entry, allowable_types):
             raise TypeError('{0} can only contain types {1}'.format(iterable_name, allowable_types))
 
+
 def validate_and_get_inclusion_test(include_tuple, ignore_tuple):
     """
     A method for validating variables and then returning an inclusion test
@@ -91,7 +94,7 @@ def validate_and_get_inclusion_test(include_tuple, ignore_tuple):
 
     for pair, name in (include_tuple, 'include_tuple'), (ignore_tuple, 'ignore_tuple'):
         check_contained_types(pair[0], name, (str, unicode))
-        check_contained_types(pair[1], name, (str, unicode))
+        #check_contained_types(pair[1], name, (str, unicode))
 
     if len(include_tuple[0]) > 0 and len(ignore_tuple[0]) > 0:
             raise ValueError('{0} and {1} cannot both contain values'.format(include_tuple[1], ignore_tuple[1]))
@@ -99,7 +102,7 @@ def validate_and_get_inclusion_test(include_tuple, ignore_tuple):
     if len(include_tuple[0]) > 0:
         good_set = set(include_tuple[0])
         return lambda x: x in good_set
-    elif len(ignore_tuple) > 0:
+    elif len(ignore_tuple[0]) > 0:
         bad_set = set(ignore_tuple[0])
         return lambda x: x not in bad_set
 
