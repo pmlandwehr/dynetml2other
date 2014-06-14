@@ -1,7 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+.. module:: dynetml2other
+:synopsis: Imports DyNetML into NetworkX, igraph, or Python dictionaries.
 
-__author__ = 'plandweh'
+.. moduleauthor:: Peter M. Landwehr <plandweh@cs.cmu.edu>
+
+"""
+__author__ = 'Peter M. Landwehr <plandweh@cs.cmu.edu>'
 
 import codecs
 from datetime import datetime
@@ -12,26 +18,26 @@ import os
 
 class DynamicMetaNetwork:
     """
-    The DynamicMetaNetwork class is a container for Dynamic Meta-Networks extracted from DyNetML.
-    It bundles together a set of Meta-Networks collected at different times.
-    self.__network_format is the format in which the networks should be stored. Can be 'igraph' or 'networkx'.
+    The DynamicMetaNetwork class is a container for dynamic meta-networks extracted from DyNetML. It bundles together a
+    set of Meta-Networks collected at different times.
+
+    :ivar __network_format: the format in which the networks should be stored:"dict", "igraph" or "networkx". \
     It cannot be changed after initialization.
-    self.attributes is a dictionary of attributes associated with the dynamic network
-    self.metanetworks is the list of the Meta-Networks associated with the Dynamic Meta-Network.
+    :ivar attributes: A dictionary of attributes associated with the dynamic network
+    :ivar metanetworks: The list of the Meta-Networks associated with the dynamic meta-network.
     """
-    def __init__(self, network_format):
+    def __init__(self, network_format="dict"):
         """
         Initializes a DynamicMetaNetwork
-        :param network_format: format in which graphs should be stored. "igraph" or "networkx"
-        :type network_format: str or unicode
-        :raise TypeError: If network format is not str or unicode
-        :raise ValueError: If network_format is not "dict", "igraph" or "networkx"
+
+        :param str|unicode network_format: Format in which graphs should be stored: "dict", "igraph" or "networkx"
         """
         if not isinstance(network_format, (str, unicode)):
             raise TypeError('network_format must be a str or unicode')
         self.__network_format = network_format.lower()
-        if self.__network_format not in ['dict', 'igraph', 'networkx']:
-            raise ValueError('network_format must be "dict", "igraph" or "networkx"; got {0}'.format(network_format))
+        if self.__network_format not in ['dict', 'igraph', 'networkx', '']:
+            raise ValueError('network_format must be blank, "dict", "igraph" or "networkx"; got {0}'.
+                             format(network_format))
 
         self.attributes = {}
         self.metanetworks = []
@@ -44,26 +50,17 @@ class DynamicMetaNetwork:
                           nodeclasses_to_include=None, nodeclasses_to_ignore=None, networks_to_include=None,
                           networks_to_ignore=None, start_date=None, end_date=None):
         """
-        Parses XML containing a Dynamic Meta-Network and loads the contents
-        :param dmn_text: XML containing a Dynamic Meta-Network
-        :param properties_to_include: a list of nodeclass properties that should be included
-        :param properties_to_ignore: a list of nodeclass properties that should be ignored
-        :param nodeclasses_to_include: a list of nodeclasses that should be included
-        :param nodeclasses_to_ignore: a list of nodeclasses that should be ignored
-        :param networks_to_include: a list of networks that should be included
-        :param networks_to_ignore: a list of networks that should be ignored
-        :param start_date: MetaNetworks from before this datetime should not be imported
-        :param end_date: MetaNetworks from after this datetime should not be imported
-        :param dmn_text: str or unicode
-        :type properties_to_include: list
-        :type properties_to_ignore: list
-        :type nodeclasses_to_include: list
-        :type nodeclasses_to_ignore: list
-        :type networks_to_include: list
-        :type networks_to_ignore: list
-        :type start_date: datetime.datetime
-        :type end_date: datetime.datetime
-        :raise TypeError: if dmn_text isn't a str or unicode
+        Parses and loads the contents of an XML containing a dynamic meta-network
+
+        :param str|unicode dmn_text: XML containing a dynamic meta-network
+        :param list properties_to_include: a list of nodeclass properties that should be included
+        :param list properties_to_ignore: a list of nodeclass properties that should be ignored
+        :param list nodeclasses_to_include: a list of nodeclasses that should be included
+        :param list nodeclasses_to_ignore: a list of nodeclasses that should be ignored
+        :param list networks_to_include: a list of networks that should be included
+        :param list networks_to_ignore: a list of networks that should be ignored
+        :param datetime.datetime start_date: Meta-Networks from before this datetime should not be imported
+        :param datetime.datetime end_date: MetaNetworks from after this datetime should not be imported
         """
         if not isinstance(dmn_text, (unicode, str)):
             raise TypeError('load_from_dynetml needs text containing XML; got {0}'.format(type(dmn_text)))
@@ -80,38 +77,29 @@ class DynamicMetaNetwork:
                       nodeclasses_to_ignore=None, networks_to_include=None, networks_to_ignore=None, start_date=None,
                       end_date=None):
         """
-        Parses the content of an lxml _Element containing a Dynamic Meta-Network and loads the contents
-        :param dmn_tag: An lxml _Element containing a Dynamic Meta-Network
-        :param properties_to_include: a list of nodeclass properties that should be included
-        :param properties_to_ignore: a list of nodeclass properties that should be ignored
-        :param nodeclasses_to_include: a list of nodeclasses that should be included
-        :param nodeclasses_to_ignore: a list of nodeclasses that should be ignored
-        :param networks_to_include: a list of networks that should be included
-        :param networks_to_ignore: a list of networks that should be ignored
-        :param start_date: MetaNetworks from before this datetime should not be imported
-        :param end_date: MetaNetworks from after this datetime should not be imported
-        :type dmn_tag: lxml._Element
-        :type properties_to_include: list
-        :type properties_to_ignore: list
-        :type nodeclasses_to_include: list
-        :type nodeclasses_to_ignore: list
-        :type networks_to_include: list
-        :type networks_to_ignore: list
-        :type start_date: datetime
-        :type end_date: datetime
-        :raise TypeError: if dnn isn't an lxml._Element
+        Parses and loads the contents of an :class:`lxml._Element` containing a dynamic meta-network
+
+        :param lxml._Element dmn_tag: A tag containing a dynamic meta-network
+        :param list properties_to_include: a list of nodeclass properties that should be included
+        :param list properties_to_ignore: a list of nodeclass properties that should be ignored
+        :param list nodeclasses_to_include: a list of nodeclasses that should be included
+        :param list nodeclasses_to_ignore: a list of nodeclasses that should be ignored
+        :param list networks_to_include: a list of networks that should be included
+        :param list networks_to_ignore: a list of networks that should be ignored
+        :param datetime.datetime start_date: MetaNetworks from before this datetime should not be imported
+        :param datetime.datetime end_date: MetaNetworks from after this datetime should not be imported
         """
         #if not isinstance(dmn_tag, (unicode, str)):
         #    raise TypeError('load_from_dynetml needs text containing XML; got {0}'.format(type(dnn_text)))
         for attrib_key in dmn_tag.attrib:
             self.attributes[attrib_key] = dmlpu.format_prop(dmn_tag.attrib[attrib_key])
 
-        if self.__network_format == 'dict':
-            from MetaNetworkDict import MetaNetworkDict as MetaNetwork
+        if self.__network_format == 'networkx':
+            from MetaNetworkNetworkX import MetaNetworkNX as MetaNetwork
         elif self.__network_format == 'igraph':
             from MetaNetworkIGraph import MetaNetworkIG as MetaNetwork
         else:
-            from MetaNetworkNetworkX import MetaNetworkNX as MetaNetwork
+            from MetaNetwork import MetaNetwork
 
         for mn_tag in dmn_tag.iterfind('MetaNetwork'):
 
@@ -129,33 +117,22 @@ class DynamicMetaNetwork:
                                                 networks_to_ignore)
 
     def drop_metanetworks_before(self, start_date):
-        """
-        Drop metanetworks that occur before a given date
-        :param start_date: Metanetworks from times before start_date should be dropped
-        :type start_date: datetime
-        """
+        """:param datetime.datetime start_date: Drop meta-networks that occur before this datetime."""
         while len(self.metanetworks) > 0 and \
                 datetime.strptime(self.metanetworks[0].attributes['id'], '%Y%m%dT%H:%M:%S') < start_date:
             self.metanetworks.remove(0)
 
     def drop_metanetworks_after(self, end_date):
-        """
-        Drop metanetworks that occur after a given date
-        :param end_date: Metanetworks from times after end_date should be dropped
-        :type end_date: datetime
-        """
+        """:param datetime.datetime end_date: Drop meta-networks that occur after this datetime."""
         while len(self.metanetworks) > 0 and \
                 datetime.strptime(self.metanetworks[-1].attributes['id'], '%Y%m%dT%H:%M:%S') > end_date:
             self.metanetworks.remove(-1)
 
     def drop_metanetworks_for_ranges(self, range_tuples, keep_in_range=True):
         """
-        Drop metanetworks relative to a number of range_tuples
-        :param range_tuples: a list of tuples consisting of a start date and end date.
-        :param keep_in_range: if True, dates within the range are retained. If false, dates within the range are
-        discarded
-        :type range_tuples: list
-        :type keep_in_range: bool
+        :param list range_tuples: A list of tuples containing of a  start date and end date pair
+        :param list keep_in_range: If true, dates outside of any tuple are dropped. If false, dates within any tuple \
+        are dropped.
         """
         dmlpu.check_contained_types(range_tuples, 'range_tuples', datetime)
 
@@ -163,17 +140,11 @@ class DynamicMetaNetwork:
             date_val = datetime.strptime(self.metanetworks[-1].attributes['id'], '%Y%m%dT%H:%M:%S')
             for r_t in range_tuples:
                 if (keep_in_range and r_t[0] > date_val or r_t[1] < date_val) or \
-                (keep_in_range is False and r_t[0] <= date_val and r_t[1] >= date_val):
+                        (keep_in_range is False and r_t[0] <= date_val <= r_t[1]):
                     self.metanetworks.remove(mn)
 
     def write_dynetml(self, out_file_path):
-        """
-        Writes dynamic meta network to a file
-        :param out_file_path: The path to the output file
-        :type out_file_path: str or unicode
-        :raise TypeError: if out_file_path isn't a str or unicode
-        :raise IOError: if out_file_path points to a directory
-        """
+        """:param str|unicode out_file_path: Write the dynamic meta-network to this path."""
         if type(out_file_path) not in [str, unicode]:
             raise TypeError('out_file_path must be str or unicode')
 
@@ -191,11 +162,7 @@ class DynamicMetaNetwork:
             outfile.write(etree.tostring(xml_root, pretty_print=True))
 
     def convert_to_dynetml(self):
-        """
-        Converts the dynamic meta network to a BeautifulSoup Tag and returns it
-        :return: a BeautifulSoup Tag
-        :raise TypeError: if is_entire_file is not a bool
-        """
+        """Return the dynamic meta-network as an :class:`lxml._Element`"""
         # bs = BeautifulSoup(features='xml')
         # bs.append(bs.new_tag('DynamicMetaNetwork'))
         # for attr in self.attributes:
@@ -218,7 +185,7 @@ class DynamicMetaNetwork:
         return dmn
 
     def pretty_print(self):
-        """Pretty print the dynamic meta network"""
+        """Pretty-print the dynamic meta-network"""
         print '= Dynamic Meta-Network ='
         print '= Properties ='
         for attr in self.attributes:

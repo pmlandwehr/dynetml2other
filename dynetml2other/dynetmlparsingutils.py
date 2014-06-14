@@ -1,4 +1,8 @@
-# from bs4 import BeautifulSoup
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+__author__ = 'Peter M. Landwehr <plandweh@cs.cmu.edu>'
+
 from collections import defaultdict
 from datetime import datetime
 from lxml import etree
@@ -6,54 +10,59 @@ from lxml import etree
 
 def node_tuple():
     """
-    The tuple that defines a node
-    :rtype: tuple_(dict, dict)
+    :returns: The tuple that defines a node
+    :rtype: :class:`tuple_(dict, dict)`
     """
     return {}, {}  # attrs, properties
 
 
 def nodeset_tuple():
     """
-    The tuple that defines a nodeset
-    :rtype: tuple_(dict, defaultdict(node_tuple)
+    :returns: The tuple that defines a nodeset
+    :rtype: :class:`tuple_(dict, defaultdict(node_tuple))`
     """
     return {}, defaultdict(node_tuple)  # property identities, list of nodes
 
 
 def nodeclass_dict():
     """
-    The defaultdict that defines a nodeclass
-    :rtype: defaultdict(nodeset_tuple)
+    :returns: The defaultdict that defines a nodeclass
+    :rtype: :class:`defaultdict(nodeset_tuple)`
     """
     return defaultdict(nodeset_tuple)  # nodesets
 
 
-def check_key(var, var_name, map, map_name, check_if_in_map=True):
+def node_tree():
+    """
+    :returns: The default dict that define
+    :rtype: :class:`defaultdict(nodeclass_dict)`
+    """
+    return defaultdict(nodeclass_dict())  # node tree
+
+
+def check_key(var, var_name, used_map, map_name, check_if_in_map=True):
     """
     Helper function for checking if a key is in a map
+
     :param var: the variable which needs to be checked
-    :param var_name: the name of the variable
-    :param map: the map
-    :param map_name: the name of the map
-    :param check_if_in_map: if True, verify that var is in map. If False, check if var is not in map
-    :type var_name: str, unicode
-    :type map_name: str, unicode
-    :raise KeyError: if var is not or is in map, depending on check_if_in_map
+    :param str|unicode var_name: the name of the variable
+    :param used_map: the map
+    :param str|unicode map_name: the name of the map
+    :param bool check_if_in_map: if True, verify that var is in map. If False, check if var is not in map
     """
-    if check_if_in_map and var not in map:
+    if check_if_in_map and var not in used_map:
         raise KeyError('{0} not in {1}; looked for {2}'.format(var_name, map_name, var))
-    elif not check_if_in_map and var in map:
+    elif not check_if_in_map and var in used_map:
         raise KeyError('{0} in {1}; looked for {2}'.format(var_name, map_name, var))
 
 
 def check_type(var, var_name, allowable_types):
     """
     Helper function for checking a variable's type
+
     :param var: the variable which needs its type checked
-    :param var_name: the name of the variable
+    :param str|unicode var_name: the name of the variable
     :param allowable_types: a type or tuple of types that var can be
-    :type var_name: str, unicode
-    :raise TypeError: if var is not a type included in allowable_types
     """
     if not isinstance(var, allowable_types):
         raise TypeError('{0} must be of type {1}'.format(var_name, str(allowable_types)))
@@ -62,13 +71,10 @@ def check_type(var, var_name, allowable_types):
 def check_contained_types(iterable, iterable_name, allowable_types):
     """
     Helper function for validating that an iterable object only contains allowed types.
-    :param iterable: the tuple or list to be evaluated
-    :param iterable_name: the name of the iterable
+
+    :param tuple|list iterable: the tuple or list to be evaluated
+    :param str|unicode iterable_name: the name of the iterable
     :param allowable_types: the types the iterable can be.
-    :type iterable: tuple, list
-    :type iterable_name: str, unicode
-    :raise TypeError: if iterable is not a list or tuple
-    :raise TypeError: if an entry in the iterable isn't an allowable type.
     """
     if not isinstance(iterable, (tuple, list)):
         raise TypeError('{0} must be a tuple or list'.format(iterable_name))
@@ -80,17 +86,18 @@ def check_contained_types(iterable, iterable_name, allowable_types):
 def validate_and_get_inclusion_test(include_tuple, ignore_tuple):
     """
     A method for validating variables and then returning an inclusion test
-    :param include_tuple: A two element tuple, the first element is a list of strings, the second is the list's name
-    :param ignore_tuple: A two element tuple, the first element is a list of strings, the second is the list's name
-    :type include_tuple: tuple
-    :type ignore_tuple: tuple
+
+    :param tuple include_tuple: A two element tuple, the first element is a list of strings, the second is the list's \
+    name
+    :param tuple ignore_tuple: A two element tuple, the first element is a list of strings, the second is the list's \
+    name
     :returns: a test for whether or not an item should be included
     :rtype: lambda
     """
     if include_tuple[0] is None:
-        include_tuple = [],''
+        include_tuple = [], ''
     if ignore_tuple[0] is None:
-        ignore_tuple = [],''
+        ignore_tuple = [], ''
 
     for pair, name in (include_tuple, 'include_tuple'), (ignore_tuple, 'ignore_tuple'):
         check_contained_types(pair[0], name, (str, unicode))
@@ -112,12 +119,11 @@ def validate_and_get_inclusion_test(include_tuple, ignore_tuple):
 def format_prop(prop_str, prop_type=str()):
     """
     A method for converting properties to appropriate formats. Currently just covers dates (bools handled elsewhere)
-    :param prop_str: a property to be converted
-    :param prop_type: str or unicode specifying the type of property
-    :returns: a converted property value, changed to an appropriate type.
-    :rtype: bool, float, datetime, unicode, or str
-    :raises TypeError: if prop_type isn't unicode or str
-    :raises ValueError: if prop_type is 'bool' and prop_str doesn't contain some form of 'true' or 'false'
+
+    :param str|unicode prop_str: a property to be converted
+    :param str|unicode prop_type: str or unicode specifying the type of property
+    :returns: a property value that has been converted to the appropriate type.
+    :rtype: bool|float|datetime|str|unicode
     """
     if not isinstance(prop_type, (unicode, str)):
         raise TypeError('prop_type must be unicode or str')
@@ -138,7 +144,8 @@ def format_prop(prop_str, prop_type=str()):
 
 def unformat_prop(prop):
     """
-    A method for un-formatting properties back to strings. Currently covers dates and bools
+    A method for un-formatting properties back to strings. Currently covers dates and bools.
+
     :param prop: a property storied in a properties dictionary, of unknown type.
     :returns: the property value transformed to a string containing equivalent dynetml contents
     :rtype: unicode or str
@@ -155,9 +162,10 @@ def unformat_prop(prop):
 def get_property_identities_tag(property_identities_dict):
     """
     Reads a dictionary of Property Identities and converts it to a propertyIdentities tag
-    :param property_identities_dict: a dictionary containing propertyIndentity values
-    :returns: a <propertyIdentities> BeautifulSoup Tag, containing appropriate <propertyIdentity> tags
-    :rtype: bs4.element.Tag
+
+    :param dict property_identities_dict: a dictionary containing propertyIndentity values
+    :returns: a propertyIdentities tag
+    :rtype: :class:`lxml._Element`
     """
     # property_identities_tag = BeautifulSoup(features='xml').new_tag('propertyIdentities')
     #
@@ -184,21 +192,27 @@ def get_property_identities_tag(property_identities_dict):
         if not isinstance(property_identities_dict[key], tuple) or len(property_identities_dict[key]) != 2:
             continue
 
-        etree.SubElement(property_identities_tag, 'propertyIdentity', attrib={ 'id': key,
-            'type': property_identities_dict[key][0], 'singleValued': unformat_prop(property_identities_dict[key][1])})
+        etree.SubElement(property_identities_tag, 'propertyIdentity',
+                         attrib={'id': key,
+                                 'type': property_identities_dict[key][0],
+                                 'singleValued': unformat_prop(property_identities_dict[key][1])})
 
     return property_identities_tag
 
 
-def get_property_identities_dict(property_identities_tag, inclusion_test=lambda x: True):
+def get_property_identities_dict(property_identities_tag, inclusion_test=None):
     """
     Reads in a propertyIdentities tag and converts it to a dictionary of property identities
-    :param property_identities_tag: a BeautifulSoup tag containing propertyIdentities, or None
-    :param inclusion_test: a test for whether or not to include a particular property. Defaults to including all.
+
+    :param lxml._Element property_identities_tag: a tag containing propertyIdentities, or None
+    :param lambda inclusion_test: a test for whether or not to include a particular property. Defaults to including all.
     :returns: A dictionary of property identities, or an empty dictionary
-    :rtype: dictionary
+    :rtype: dict
     """
     property_identities_dict = {}
+
+    if inclusion_test is None:
+        inclusion_test = lambda x: True
 
     if property_identities_tag is None:
         return property_identities_dict
@@ -214,9 +228,10 @@ def get_property_identities_dict(property_identities_tag, inclusion_test=lambda 
 def get_properties_tag(properties_dict):
     """
     Reads in a dictionary of properties and converts it to a properties tag
+
     :param properties_dict: a dictionary of properties
-    :returns: a BeautifulSoup <properties> tag, containing appropriate <property> tags
-    :rtype: bs4.element.Tag
+    :returns: A <properties> tag
+    :rtype: :class:`lxml._Element`
     """
     # properties_tag = BeautifulSoup(features='xml').new_tag('properties')
     #
@@ -241,7 +256,15 @@ def get_properties_tag(properties_dict):
     return properties_tag
 
 
-def get_nodeset_tuple(nodeclass_tag, property_inclusion_test=lambda x: True):
+def get_nodeset_tuple(nodeclass_tag, property_inclusion_test=None):
+    """
+    :param nodeclass_tag: An lxml._Element extracted from the <nodeclass> tag in a DyNetML file
+    :param lambda property_inclusion_test: Test for whether a node property should be included
+    :returns: :class:`dict`, :class:`Collections.defaultdict(node_tuple)`
+    """
+    if property_inclusion_test is None:
+        property_inclusion_test = lambda x: True
+
     p_i_dict = get_property_identities_dict(nodeclass_tag.find('propertyIdentities'), property_inclusion_test)
     node_tuples = defaultdict(node_tuple)
 
@@ -256,7 +279,17 @@ def get_nodeset_tuple(nodeclass_tag, property_inclusion_test=lambda x: True):
     return p_i_dict, node_tuples
 
 
-def get_nodeclass_dict(nodes_tag, prop_inclusion_test=lambda x: True, nodeclass_inclusion_test=lambda x: True):
+def get_nodeclass_dict(nodes_tag, prop_inclusion_test=None, nodeclass_inclusion_test=None):
+    """
+    :param lxml._Element nodes_tag: An lxml._Element extracted from the  <nodes> tag in a DynetML file
+    :param lambda prop_inclusion_test: Test for whether a node property should be included
+    :param lambda nodeclass_inclusion_test: Test for whether a nodeclass should be included
+    :returns: A dictionary defining a nodeclass
+    :rtype: :class:`Collections.defaultdict(dict)`
+    """
+    if nodeclass_inclusion_test is None:
+        nodeclass_inclusion_test = lambda x: True
+
     new_nodeclass_dict = defaultdict(dict)
     for nc_tag in nodes_tag.iterfind('nodeclass'):
         if not nodeclass_inclusion_test(nc_tag.attrib['id']):

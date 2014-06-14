@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__author__ = 'plandweh'
+__author__ = 'Peter M. Landwehr <plandweh@cs.cmu.edu>'
 
 import dynetmlparsingutils as dmlpu
 from lxml import etree
@@ -11,7 +11,8 @@ from networkx import nx
 
 class MetaNetworkNX (MetaNetwork):
     """
-    A subclass of the MetaNetwork class that handles networks by storing them as nx.Graphs and nx.DiGraphs
+    A subclass of the MetaNetwork class that handles networks by storing them as instances of :class:`networkx.Graph` \
+    and :class:`networkx.DiGraph`.
     """
 
     def _rename_network_nodes(self, nodeclass_name, nodeset_name, node_name, new_node_name):
@@ -81,7 +82,7 @@ class MetaNetworkNX (MetaNetwork):
                 'sourceType': self.networks[key].graph['sourceType'], 'source': self.networks[key].graph['source'],
                 'targetType': self.networks[key].graph['targetType'], 'target': self.networks[key].graph['target'],
                 'id': key, 'isDirected': dmlpu.unformat_prop(self.networks[key].graph['isDirected']),
-                'allowSelfLoops': dmlpu. dmlpu.unformat_prop(self.networks[key].graph['isBinary'])
+                'allowSelfLoops': dmlpu.unformat_prop(self.networks[key].graph['isBinary'])
             })
 
             if not self.networks[key].graph['isBinary']:

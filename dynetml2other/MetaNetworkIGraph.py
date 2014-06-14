@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__author__ = 'plandweh'
+__author__ = 'Peter M. Landwehr <plandweh@cs.cmu.edu>'
 
 from collections import OrderedDict
 import dynetmlparsingutils as dmlpu
@@ -12,14 +12,15 @@ from MetaNetwork import MetaNetwork
 
 class MetaNetworkIG (MetaNetwork):
     """
-    A subclass of the MetaNetwork class that handles networks by storing them as tuples of igraph.Graphs and
-    dictionaries matching node names to igraph index numbers.
+    A subclass of the MetaNetwork class that stores networks as tuples. The first element of each tuple is a \
+    dictionary that matches node names to igraph node numbers. The second element is an :class:`igraph.Graph` \
+    containing the network itself.
     """
 
     def _rename_network_nodes(self, nodeclass_name, nodeset_name, node_name, new_node_name):
         for nk in self.networks:
             if nk[1]['sourceType'] == nodeclass_name and nk[1]['source'] == nodeset_name or \
-             nk[1]['targetType'] == nodeclass_name and nk[1]['target'] == nodeset_name:
+                    nk[1]['targetType'] == nodeclass_name and nk[1]['target'] == nodeset_name:
                 if node_name in nk[0]:
                     nk[0][new_node_name] = nk[0][node_name]
                     del nk[0][node_name]

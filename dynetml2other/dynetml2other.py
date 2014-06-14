@@ -1,30 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Helper class for converting DyNetML files into NetworkX or igraph graphs.
-Meta-Networks will be stored as instances of the MetaNetwork class, which contains graphs from the chosen library.
-Dynamic Meta-Networks are stored as instances of the DynamicMetaNetwork class, which contains a list of MetaNetworks.
+Imports a DyNetML file into a wrapper class that uses NetworkX, igraph, or Python dictionaries to contain the networks.
+
+.. moduleauthor:: Peter M. Landwehr <plandweh@cs.cmu.edu>
 """
-__author__ = 'plandweh'
+
+
+__author__ = 'Peter M. Landwehr <plandweh@cs.cmu.edu>'
 
 from DynamicMetaNetwork import DynamicMetaNetwork
 from lxml import etree
 import os
 
 
-def dynetml2other(dynetml_path, network_format):
+def main(dynetml_path, network_format="dict"):
     """
-    This method reads in a DyNetML file and returns the contained DynamicMetaNetwork or MetaNetwork objects.
-    :param dynetml_path: Path to dynetml file
-    :param network_format: str or unicode containing the network format; we expect "networkx" or "igraph"
-    :type dynetml_path: str or unicode
-    :type network_format: str or unicode
-    :return an instance of DynamicMetaNetwork, an instance of MetaNetwork, or None
-    :rtype: DynamicMetaNetwork, MetaNetwork, or None
-    :raise TypeError: if dynetml_path isn't a string or unicode
-    :raise TypeError: if network_format isn't a string or unicode
-    :raise ValueError: if network_format isn't "igraph" or "networkx"
-    :raise IOError: if dynetml_path isn't a file or doesn't exist
+    :param str|unicode dynetml_path: Path to a dynetml file
+    :param str|unicode network_format: The network format; we expect "networkx", "igraph", or nothing ("dict")
+    :returns: The data wrapped in the appropriate class and stored in the specified graph library
+    :rtype: DynamicMetaNetwork|MetaNetwork|None
     """
     if not isinstance(dynetml_path, (str, unicode)):
         raise TypeError('dynetml_path must be str or unicode')
@@ -32,8 +27,8 @@ def dynetml2other(dynetml_path, network_format):
     if not isinstance(network_format, (str, unicode)):
         raise TypeError('network_format must be str or unicode')
 
-    if network_format.lower() not in ('dict', 'igraph', 'networkx'):
-        raise ValueError('network_format must be "dict", "igraph" or "networkx"; got {0}'.format(network_format))
+    if network_format.lower() not in ('dict', 'igraph', 'networkx', ''):
+        raise ValueError('network_format must be blank, "dict", "igraph" or "networkx"; got {0}'.format(network_format))
 
     if not os.path.isfile(dynetml_path):
         raise IOError('{0} isn\'t a file'.format(dynetml_path))
@@ -49,14 +44,19 @@ def dynetml2other(dynetml_path, network_format):
         outnetwork = DynamicMetaNetwork(network_format.lower())
         outnetwork.load_from_tag(root.getroot())
     elif root_tag == 'MetaNetwork':
-        if network_format.lower() == 'dict':
-            from MetaNetworkDict import MetaNetworkDict as MetaNetwork
+        if network_format.lower() == 'networkx':
+            from MetaNetworkNetworkX import MetaNetworkNX as MetaNetwork
         elif network_format.lower() == 'igraph':
             from MetaNetworkIGraph import MetaNetworkIG as MetaNetwork
         else:
-            from MetaNetworkNetworkX import MetaNetworkNX as MetaNetwork
+            from MetaNetwork import MetaNetwork
 
         outnetwork = MetaNetwork()
         outnetwork.load_from_tag(root.getroot())
 
     return outnetwork
+
+if __name__ == '__main__':
+    import sys
+    if len(sys.argv) == 3:
+        main(sys.argv[1], sys.argv[2])

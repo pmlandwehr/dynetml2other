@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-__author__ = 'plandweh'
+__author__ = 'Peter M. Landwehr <plandweh@cs.cmu.edu>'
 
 from collections import defaultdict
 import dynetmlparsingutils as dmlpu
